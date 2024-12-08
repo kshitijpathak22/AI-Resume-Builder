@@ -4,6 +4,7 @@
   "main": "index.js",
   "dependencies": {
     "@clerk/clerk-react": "^5.16.0",
+    "@google/generative-ai": "^0.21.0",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "ansi-regex": "^6.1.0",
