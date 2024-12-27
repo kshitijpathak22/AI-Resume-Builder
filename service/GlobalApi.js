@@ -18,7 +18,13 @@ const CreateNewResume = (data) => axiosClient.post('/user-resumes', data);
 
 const GetUserResumes =(userEmail) => axiosClient.get('/user-resumes?filters[userEmail][$eq]='+userEmail);
 
-const updateResumeDetail=(id,data)=>axiosClient.put('/user-resumes/'+id, data)
+const updateResumeDetail = (id, data) => {
+  return axiosClient.put(`/user-resumes/${id}`, data)
+    .catch(error => {
+      console.error('Update error:', error.response?.data || error);
+      throw error;
+    });
+};
 
 export default {
   CreateNewResume,
