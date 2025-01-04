@@ -51,25 +51,23 @@ function Summery({ enabledNext }) {
   const onSave = (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     const data = {
       data: {
-        summery: summery,
-      },
+        summery: summery || ''  // Ensure non-null value
+      }
     };
-
-    GlobalApi.updateResumeDetail(params?.resumeId, data)
-      .then((resp) => {
-        console.log('API Response:', resp);
+  
+    GlobalApi.updateResumeDetail(params.resumeId, data)
+      .then(resp => {
         enabledNext(true);
-        toast('Details updated successfully');
+        toast.success('Details updated successfully');
       })
-      .catch((error) => {
-        console.error('Error updating resume:', error);
+      .catch(error => {
+        console.error('Error details:', error.response?.data);
+        toast.error(error.response?.data?.error?.message || 'Update failed');
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   return (
