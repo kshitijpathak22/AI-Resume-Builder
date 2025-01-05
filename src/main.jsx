@@ -8,38 +8,46 @@ import Home from './home'
 import Dashboard from './dashboard'
 import { ClerkProvider } from '@clerk/clerk-react'
 import EditResume from './dashboard/resume/[resumeId]/edit'
+import ViewResume from './my-resume/[resumeId]/view'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
 }
+// 1. Give path="/" to the parent route that uses <App />
+// 2. Use an index route for <Home />
+// 3. Child route for /dashboard, /dashboard/resume/:id/edit, etc.
+
 const router = createBrowserRouter([
   {
-    element: <App/>,
-    children:[
-
+    path: "/",
+    element: <App />,
+    children: [
       {
-        path:'/dashboard',
-        element:<Dashboard/>
+        index: true,
+        element: <Home />,
       },
       {
-        path:'/dashboard/resume/:resumeId/edit',
-        element:<EditResume/>
-      }
-    ]
-    
+        path: "dashboard",
+        element: <Dashboard />,
+      },
+      {
+        path: "dashboard/resume/:resumeId/edit",
+        element: <EditResume />,
+      },
+    ],
+  },
+  {
+    path: "/auth/sign-in",
+    element: <SignInPage />,
+  },
+  {
+    path: "/my-resume/:resumeId/view",
+    element: <ViewResume />,
+  },
+]);
 
-  },
-  {
-    path:'/',
-    element:<Home/>
-  },
-  {
-    path: '/auth/sign-in',
-    element: <SignInPage/>
-  }
-])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

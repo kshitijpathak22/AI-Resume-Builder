@@ -50,7 +50,7 @@ function Skills() {
             }
         }
 
-        GlobalApi.updateResumeDetail(resumeId,data)
+        GlobalApi.UpdateResumeDetail(resumeId,data)
         .then(resp=>{
             console.log(resp);
             setLoading(false);

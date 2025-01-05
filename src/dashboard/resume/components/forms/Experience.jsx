@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import React, { useContext, useEffect, useState } from 'react';
-import RichTextEditor from '@/dashboard/components/RichTextEditor';
+import RichTextEditor from '@/dashboard/resume/components/RichTextEditor';
 import { ResumeInfoContext } from '@/context/ResumeInfoContext';
 import { useParams } from 'react-router-dom';
 import GlobalApi from '~/service/GlobalApi';
 import { toast } from 'sonner';
 import { LoaderCircle } from 'lucide-react';
-
 const formField={
     title:'',
     companyName:'',
@@ -25,7 +24,7 @@ function Experience() {
     const [loading,setLoading]=useState(false);
 
     useEffect(()=>{
-        resumeInfo?.Experience?.length>0&&setExperinceList(resumeInfo?.Experience)
+        resumeInfo?.Experience.length>0&&setExperinceList(resumeInfo?.Experience)
         
     },[])
 

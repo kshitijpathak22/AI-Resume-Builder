@@ -4,6 +4,7 @@ import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { Brain, LoaderCircle } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react'
 import { Form, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { AIChatSession } from "~/service/AIModal.js";
 import GlobalApi from "~/service/GlobalApi.js";
 
@@ -15,6 +16,8 @@ function Summery({ enabledNext }) {
   const [loading, setLoading] = useState(false);
   const params = useParams();
   const [aiGeneratedSummeryList, setAiGeneratedSummeryList] = useState([]);
+
+  
 
   useEffect(() => {
     if (summery) {
@@ -35,9 +38,15 @@ function Summery({ enabledNext }) {
       console.log("AI Response:", result.response.text());
   
       const aiResponse = JSON.parse(result.response.text());
-      if (aiResponse?.summaries && Array.isArray(aiResponse.summaries)) {
-        setAiGeneratedSummeryList(aiResponse.summaries);
-      } else {
+if (aiResponse?.summaries && Array.isArray(aiResponse.summaries)) {
+  setAiGeneratedSummeryList(
+    aiResponse.summaries.map((summaryItem) => ({
+      ...summaryItem,
+      summary: Array.isArray(summaryItem.summary) ? summaryItem.summary[0] : summaryItem.summary
+    }))
+  );
+}
+ else {
         console.error("AI response is not in the expected format.");
       }
     } catch (error) {
@@ -58,7 +67,7 @@ function Summery({ enabledNext }) {
       }
     };
   
-    GlobalApi.updateResumeDetail(params.resumeId, data)
+    GlobalApi.UpdateResumeDetail(params.resumeId, data)
       .then(resp => {
         enabledNext(true);
         toast.success('Details updated successfully');
@@ -108,17 +117,18 @@ function Summery({ enabledNext }) {
   <div className="my-5">
     <h2 className="font-bold text-lg">Suggestions</h2>
     {aiGeneratedSummeryList.map((item, index) => (
-      <div
-        key={index}
-        onClick={() => setSummery(item?.summary)}
-        className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
-      >
-        <h2 className="font-bold my-1 text-primary">
-          Level: {item?.experience_level}
-        </h2>
-        <p>{item?.summary}</p>
-      </div>
-    ))}
+  <div
+    key={index}
+    onClick={() => setSummery(item?.summary)}
+    className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
+  >
+    <h2 className="font-bold my-1 text-primary">
+      Level: {item?.experience_level}
+    </h2>
+    <p>{item?.summary}</p>
+  </div>
+))}
+
   </div>
 )}
 
