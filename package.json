@@ -169,9 +169,12 @@
     "yaml": "^2.6.0",
     "zod": "^3.23.8"
   },
+  "engines": {
+  "node": ">=16.0.0"
+},
   "scripts": {
     "dev": "vite",
-    "build": "npm install --no-optional && vite build",
+    "build": "npm install && vite build",
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
