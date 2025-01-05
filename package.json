@@ -172,7 +172,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm install --no-optional && vite build",
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
