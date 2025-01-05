@@ -180,8 +180,11 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@tailwindcss/typography": "^0.5.15",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "rollup": "^4.29.2",
     "vite": "^5.4.11"
   }
 }
