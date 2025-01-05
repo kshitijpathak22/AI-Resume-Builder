@@ -7,7 +7,7 @@ function Home() {
   return (
     <div>
       {/* Custom Header Component */}
-      <Header />
+     
 
       <div>
         {/* 
