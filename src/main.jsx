@@ -9,6 +9,7 @@ import Dashboard from './dashboard'
 import { ClerkProvider } from '@clerk/clerk-react'
 import EditResume from './dashboard/resume/[resumeId]/edit'
 import ViewResume from './my-resume/[resumeId]/view'
+import RequireAuth from './auth/RequireAuth'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -30,11 +31,19 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        element: <Dashboard />,
+        element: (
+          <RequireAuth>
+            <Dashboard />
+          </RequireAuth>
+        ),
       },
       {
         path: "dashboard/resume/:resumeId/edit",
-        element: <EditResume />,
+        element: (
+          <RequireAuth>
+            <EditResume />
+          </RequireAuth>
+        ),
       },
     ],
   },

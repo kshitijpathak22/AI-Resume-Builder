@@ -4,7 +4,7 @@ import { Brain, LoaderCircle } from 'lucide-react';
 import React, { useContext, useState } from 'react'
 import { BtnBold, BtnBulletList, BtnClearFormatting, BtnItalic, BtnLink, BtnNumberedList, BtnRedo, BtnStrikeThrough, BtnStyles, BtnUnderline, BtnUndo, Editor, EditorProvider, HtmlButton, Separator, Toolbar } from 'react-simple-wysiwyg';
 import { toast } from 'sonner';
-import { AIChatSession } from '~/service/AIModal.js';
+import { sendMessageWithExamples } from '~/service/AIModal.js';
 
 const PROMPT='position titile: {positionTitle} , Depends on position title give me 5-7 bullet points for my experience in resume (Please do not add experince level and No JSON array) , give me result in HTML tags'
 
@@ -21,13 +21,39 @@ function RichTextEditor({onRichTextEditorChange,index,defaultValue}) {
       return ;
     }
     setLoading(true)
-    const prompt=PROMPT.replace('{positionTitle}',resumeInfo.Experience[index].title);
     
-    const result=await AIChatSession.sendMessage(prompt);
-    console.log(result.response.text());
-    const resp=result.response.text()
-    setValue(resp.replace('[','').replace(']',''));
-    setLoading(false);
+    try {
+      const prompt=PROMPT.replace('{positionTitle}',resumeInfo.Experience[index].title);
+      
+      console.log(`Generating AI content for job ${index + 1}: ${resumeInfo.Experience[index].title}`);
+      
+      // Use the enhanced function with examples
+      const result = await sendMessageWithExamples(prompt, 'experience');
+      console.log(`AI Response for job ${index + 1}:`, result.response.text());
+      const resp=result.response.text()
+      
+      // Clean up the response and validate it
+      if (resp && resp.trim()) {
+        const cleanedResp = resp.replace('[','').replace(']','').trim();
+        setValue(cleanedResp);
+        toast.success(`AI content generated successfully for ${resumeInfo.Experience[index].title}!`);
+      } else {
+        toast.error("AI returned empty response. Please try again.");
+      }
+    } catch (error) {
+      console.error(`Error generating AI content for job ${index + 1}:`, error);
+      
+      // Provide specific error messages
+      if (error.message?.includes('quota')) {
+        toast.error("AI service quota exceeded. Please try again later.");
+      } else if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else {
+        toast.error("Failed to generate AI content. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

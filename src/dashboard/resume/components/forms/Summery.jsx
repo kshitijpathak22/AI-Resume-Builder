@@ -5,7 +5,7 @@ import { Brain, LoaderCircle } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react'
 import { Form, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AIChatSession } from "~/service/AIModal.js";
+import { sendMessageWithExamples } from "~/service/AIModal.js";
 import GlobalApi from "~/service/GlobalApi.js";
 
 const prompt = "Job Title: {jobTitle}, Depends on job title give me list of summery for 3 experience levels: Fresher, Mid Level, Experienced. Provide 3-4 lines in array format with fields: summary and experience_level.";
@@ -34,23 +34,44 @@ function Summery({ enabledNext }) {
     console.log("Generated Prompt:", PROMPT);
   
     try {
-      const result = await AIChatSession.sendMessage(PROMPT);
+      // Use the enhanced function with examples
+      const result = await sendMessageWithExamples(PROMPT, 'summary');
       console.log("AI Response:", result.response.text());
   
-      const aiResponse = JSON.parse(result.response.text());
-if (aiResponse?.summaries && Array.isArray(aiResponse.summaries)) {
-  setAiGeneratedSummeryList(
-    aiResponse.summaries.map((summaryItem) => ({
-      ...summaryItem,
-      summary: Array.isArray(summaryItem.summary) ? summaryItem.summary[0] : summaryItem.summary
-    }))
-  );
-}
- else {
-        console.error("AI response is not in the expected format.");
+      // Try to parse the response as JSON
+      let aiResponse;
+      try {
+        aiResponse = JSON.parse(result.response.text());
+      } catch (parseError) {
+        console.error("Failed to parse AI response as JSON:", parseError);
+        toast.error("AI response format error. Please try again.");
+        return;
+      }
+
+      // Validate the response structure
+      if (aiResponse?.summaries && Array.isArray(aiResponse.summaries)) {
+        setAiGeneratedSummeryList(
+          aiResponse.summaries.map((summaryItem) => ({
+            ...summaryItem,
+            summary: Array.isArray(summaryItem.summary) ? summaryItem.summary[0] : summaryItem.summary
+          }))
+        );
+        toast.success("AI suggestions generated successfully!");
+      } else {
+        console.error("AI response is not in the expected format:", aiResponse);
+        toast.error("AI response format is unexpected. Please try again.");
       }
     } catch (error) {
       console.error("Error generating summary from AI:", error);
+      
+      // Provide specific error messages based on error type
+      if (error.message?.includes('quota')) {
+        toast.error("AI service quota exceeded. Please try again later.");
+      } else if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else {
+        toast.error("Failed to generate AI suggestions. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
