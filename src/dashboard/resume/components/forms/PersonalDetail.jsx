@@ -73,8 +73,8 @@ return (
                   onChange={handleInputChange}  />
               </div>
               <div className='col-span-2'>
-                  <label className='text-sm'>Address</label>
-                  <Input name="address" required 
+                  <label className='text-sm'>Address <span className='text-muted-foreground text-xs'>(Optional)</span></label>
+                  <Input name="address"
                   defaultValue={resumeInfo?.address}
                   onChange={handleInputChange}  />
               </div>

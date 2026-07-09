@@ -43,65 +43,73 @@
 }
   @layer base {
     :root {
-      --background: 0 0% 100%;
-      --foreground: 0 0% 3.9%;
+      /* Brain.fm-inspired Light Mode */
+      --background: 240 10% 96%;
+      --foreground: 260 10% 10%;
 
-      --card: 0 0% 100%;
-      --card-foreground: 0 0% 3.9%;
+      --card: 240 10% 96%;
+      --card-foreground: 260 10% 10%;
 
-      --popover: 0 0% 100%;
-      --popover-foreground: 0 0% 3.9%;
+      --popover: 240 10% 96%;
+      --popover-foreground: 260 10% 10%;
 
-      --primary: 0 0% 9%;
-      --primary-foreground: 0 0% 98%;
+      --primary: 245 58% 51%; /* Deep Indigo-Violet #5B3FD9 */
+      --primary-foreground: 0 0% 100%;
 
-      --secondary: 0 0% 96.1%;
-      --secondary-foreground: 0 0% 9%;
+      --secondary: 260 15% 25%;
+      --secondary-foreground: 0 0% 100%;
 
-      --muted: 0 0% 96.1%;
-      --muted-foreground: 0 0% 45.1%;
+      --muted: 240 10% 92%;
+      --muted-foreground: 260 10% 45%;
 
-      --accent: 0 0% 96.1%;
-      --accent-foreground: 0 0% 9%;
+      --accent: 240 10% 92%;
+      --accent-foreground: 260 10% 10%;
 
-      --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 0 0% 98%;
+      --destructive: 350 83% 52%;
+      --destructive-foreground: 0 0% 100%;
+      
+      --success: 151 93% 41%;
+      --warning: 25 77% 63%;
 
-      --border: 0 0% 89.8%;
-      --input: 0 0% 89.8%;
-      --ring: 0 0% 3.9%;
+      --border: 260 10% 88%;
+      --input: 260 10% 88%;
+      --ring: 245 80% 60%;
 
-      --radius: 0.5rem;
+      --radius: 0.75rem;
     }
 
     .dark {
-      --background: 0 0% 3.9%;
-      --foreground: 0 0% 98%;
+      /* Brain.fm dark: #0D0C11 background */
+      --background: 252 14% 5%;
+      --foreground: 248 20% 92%;
 
-      --card: 0 0% 3.9%;
-      --card-foreground: 0 0% 98%;
+      --card: 252 14% 8%;
+      --card-foreground: 248 20% 92%;
 
-      --popover: 0 0% 3.9%;
-      --popover-foreground: 0 0% 98%;
+      --popover: 252 14% 8%;
+      --popover-foreground: 248 20% 92%;
 
-      --primary: 0 0% 98%;
-      --primary-foreground: 0 0% 9%;
+      --primary: 245 58% 51%;
+      --primary-foreground: 0 0% 100%;
 
-      --secondary: 0 0% 14.9%;
-      --secondary-foreground: 0 0% 98%;
+      --secondary: 248 15% 18%;
+      --secondary-foreground: 248 20% 92%;
 
-      --muted: 0 0% 14.9%;
-      --muted-foreground: 0 0% 63.9%;
+      --muted: 252 14% 12%;
+      --muted-foreground: 240 10% 60%;
 
-      --accent: 0 0% 14.9%;
-      --accent-foreground: 0 0% 98%;
+      --accent: 252 14% 12%;
+      --accent-foreground: 248 20% 92%;
 
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 0 0% 98%;
+      --destructive: 350 83% 52%;
+      --destructive-foreground: 0 0% 100%;
 
-      --border: 0 0% 14.9%;
-      --input: 0 0% 14.9%;
-      --ring: 0 0% 83.1%;
+      --success: 151 93% 41%;
+      --warning: 25 77% 63%;
+
+      --border: 252 14% 15%;
+      --input: 252 14% 15%;
+      --ring: 245 80% 60%;
     }
   }
 
@@ -111,5 +119,109 @@
     }
     body {
       @apply bg-background text-foreground;
+      background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+      background-size: 28px 28px;
+      background-attachment: fixed;
     }
+    .dark body {
+      background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+      background-attachment: fixed;
+    }
+  }
+
+  @layer components {
+    /* Brain.fm inspired glass panels */
+    .glass-light {
+      background-color: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .dark .glass-light {
+      background-color: rgba(13, 12, 17, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-medium {
+      background-color: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .dark .glass-medium {
+      background-color: rgba(13, 12, 17, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-heavy {
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .dark .glass-heavy {
+      background-color: rgba(13, 12, 17, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Global application of glass medium to cards and dialogs */
+    .card-glass, .bg-card, [role="dialog"], [data-radix-popper-content-wrapper] > div {
+      @apply glass-medium shadow-lg !important;
+    }
+
+    /* Brain.fm inspired noise-panel glow card */
+    .noise-panel {
+      @apply rounded-3xl relative overflow-hidden;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .noise-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 100%);
+      opacity: 0.4;
+      mix-blend-mode: screen;
+      mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.1) 100%);
+      pointer-events: none;
+    }
+
+    /* Glassmorphic Icon Wrapper */
+    .icon-glass {
+      @apply p-4 rounded-2xl backdrop-blur-md border flex items-center justify-center;
+      background: rgba(91, 63, 217, 0.1);
+      border-color: rgba(91, 63, 217, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(91, 63, 217, 0.08);
+    }
+    .dark .icon-glass {
+      background: rgba(91, 63, 217, 0.12);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px) rotateY(-5deg) rotateX(5deg); }
+    50% { transform: translateY(-15px) rotateY(-2deg) rotateX(2deg); }
+    100% { transform: translateY(0px) rotateY(-5deg) rotateX(5deg); }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Brain.fm inspired purple glow */
+  .glow-purple {
+    box-shadow: 0 0 80px 15px rgba(99, 69, 255, 0.2);
+  }
+  .glow-blue {
+    box-shadow: 0 0 80px 15px rgba(22, 166, 248, 0.15);
   }

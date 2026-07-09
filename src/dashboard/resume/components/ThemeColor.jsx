@@ -13,10 +13,10 @@ import { toast } from 'sonner'
 
 function ThemeColor() {
     const colors=[
-        "#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF",
-        "#33FFA1", "#FF7133", "#71FF33", "#7133FF", "#FF3371",
-        "#33FF71", "#3371FF", "#A1FF33", "#33A1FF", "#FF5733",
-        "#5733FF", "#33FF5A", "#5A33FF", "#FF335A", "#335AFF"
+        "#0f172a", "#1e293b", "#334155", "#475569", "#64748b",
+        "#171717", "#262626", "#18181b", "#0c4a6e", "#0f766e",
+        "#1e3a8a", "#1d4ed8", "#4338ca", "#5b21b6", "#be123c",
+        "#9f1239", "#b45309", "#065f46", "#3f6212", "#831843"
     ]
 
     const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
@@ -52,8 +52,8 @@ function ThemeColor() {
             <div 
             onClick={()=>onColorSelect(item)}
             className={`h-5 w-5 rounded-full cursor-pointer
-             hover:border-black border
-             ${selectedColor==item&&'border border-black'}
+             hover:border-foreground border
+             ${selectedColor==item&&'border border-foreground'}
              `}
             style={{
                 background:item

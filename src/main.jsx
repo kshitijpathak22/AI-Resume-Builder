@@ -10,6 +10,9 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import EditResume from './dashboard/resume/[resumeId]/edit'
 import ViewResume from './my-resume/[resumeId]/view'
 import RequireAuth from './auth/RequireAuth'
+import { ThemeProvider } from './components/theme-provider'
+import InterviewPage from './interview'
+import InterviewDashboard from './interviews'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -45,6 +48,14 @@ const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
+      {
+        path: "interviews",
+        element: (
+          <RequireAuth>
+            <InterviewDashboard />
+          </RequireAuth>
+        ),
+      },
     ],
   },
   {
@@ -55,13 +66,23 @@ const router = createBrowserRouter([
     path: "/my-resume/:resumeId/view",
     element: <ViewResume />,
   },
+  {
+    path: "/my-resume/:resumeId/interview",
+    element: (
+      <RequireAuth>
+        <InterviewPage />
+      </RequireAuth>
+    ),
+  },
 ]);
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <RouterProvider router={router}/>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <RouterProvider router={router}/>
+      </ThemeProvider>
     </ClerkProvider>
   </React.StrictMode>,
 )

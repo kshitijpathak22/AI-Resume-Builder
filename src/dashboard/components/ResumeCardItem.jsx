@@ -1,4 +1,4 @@
-import { Loader2Icon, MoreVertical, Notebook } from 'lucide-react'
+import { Loader2Icon, MoreVertical, FileText } from 'lucide-react'
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -47,29 +47,42 @@ function ResumeCardItem({resume,refreshData}) {
   }
   return (
     
-       <div className=''>
+       <div className='group active:scale-[0.97] transition-transform duration-200 cursor-pointer'>
           <Link to={'/dashboard/resume/'+resume.documentId+"/edit"}>
-        <div className='p-14  bg-gradient-to-b
-          from-pink-100 via-purple-200 to-blue-200
-        h-[280px] 
-          rounded-t-lg border-t-4
-        '
+        <div className='p-14 card-glass h-[280px] rounded-t-xl border-t-4 transition-all hover:border-primary hover:shadow-[0_0_2rem_-0.5rem_rgba(91,63,217,0.5)] relative flex flex-col items-center justify-center'
         style={{
-          borderColor:resume?.themeColor
+          borderColor:resume?.themeColor || 'var(--primary)'
         }}
         >
-              <div className='flex 
-        items-center justify-center h-[180px] '>
-                {/* <Notebook/> */}
-                <img src="/cv.png" width={80} height={80} />
+              <div className='flex flex-col items-center justify-center h-[180px] w-full'>
+                <div className="icon-glass group-hover:scale-105 group-hover:-translate-y-2 transition-all duration-300 w-24 h-32 flex flex-col gap-1.5 p-2 bg-white/10 dark:bg-black/10 border-white/30 items-start justify-start overflow-hidden">
+                  {/* Miniature Resume Skeleton */}
+                  <div className="w-3/4 h-2 rounded-full mb-1" style={{ backgroundColor: resume?.themeColor || 'var(--primary)' }}></div>
+                  <div className="w-full h-1 bg-muted-foreground/30 rounded-full"></div>
+                  <div className="w-full h-1 bg-muted-foreground/30 rounded-full"></div>
+                  <div className="w-5/6 h-1 bg-muted-foreground/30 rounded-full"></div>
+                  
+                  <div className="w-1/2 h-1.5 rounded-full mt-2" style={{ backgroundColor: resume?.themeColor || 'var(--primary)' }}></div>
+                  <div className="w-full h-1 bg-muted-foreground/30 rounded-full"></div>
+                  <div className="w-4/5 h-1 bg-muted-foreground/30 rounded-full"></div>
+                  <div className="w-full h-1 bg-muted-foreground/30 rounded-full"></div>
+                  <div className="w-2/3 h-1 bg-muted-foreground/30 rounded-full"></div>
+                </div>
+                
+                <div className="absolute opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center inset-0 bg-background/60 backdrop-blur-sm rounded-t-xl z-10">
+                  <span className="text-primary font-semibold tracking-wide bg-background/90 px-5 py-2 rounded-full border border-white/20 shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 text-center">
+                    {resume.title}<br/>
+                    <span className="text-xs font-normal text-muted-foreground">Click to Edit</span>
+                  </span>
+                </div>
               </div>
         </div>
         </Link>
-        <div className='border p-3 flex justify-between  text-white rounded-b-lg shadow-lg'
+        <div className='border border-t-0 p-3 flex justify-between text-white rounded-b-xl shadow-lg backdrop-blur-xl'
          style={{
-          background:resume?.themeColor
+          background:resume?.themeColor ? `${resume.themeColor}dd` : 'rgba(91, 63, 217, 0.8)'
         }}>
-          <h2 className='text-sm'>{resume.title}</h2>
+          <h2 className='text-sm font-medium truncate'>{resume.title}</h2>
          
           <DropdownMenu>
           <DropdownMenuTrigger>

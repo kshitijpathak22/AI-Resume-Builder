@@ -9,12 +9,12 @@ function PersonalDetailPreview({resumeInfo}) {
         }}
         >
             {resumeInfo?.firstName} {resumeInfo?.lastName}</h2>
-        <h2 className='text-center text-sm font-medium'
+       <h2 className='text-center text-sm font-medium'
        >{resumeInfo?.jobTitle}</h2>
-       <h2 className='text-center font-normal text-xs'
+       {resumeInfo?.address && <h2 className='text-center font-normal text-xs'
         style={{
             color:resumeInfo?.themeColor
-        }}>{resumeInfo?.address}</h2>
+        }}>{resumeInfo?.address}</h2>}
 
         <div className='flex justify-between'>
             <h2 className='font-normal text-xs'

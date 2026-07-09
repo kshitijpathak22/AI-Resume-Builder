@@ -8,6 +8,7 @@ import Education from './forms/Education';
 import Skills from './forms/Skills';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import ThemeColor from './ThemeColor';
+import TailorJDModal from './TailorJDModal';
 
 function FormSection() {
   const [activeFormIndex,setActiveFormIndex]=useState(1);
@@ -21,7 +22,7 @@ function FormSection() {
           <Button><Home/></Button>
           </Link>
           <ThemeColor/>
-         
+          <TailorJDModal />
           </div>
           <div className='flex gap-2'>
             {activeFormIndex>1

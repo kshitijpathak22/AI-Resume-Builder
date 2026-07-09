@@ -8,27 +8,27 @@ import { toast } from 'sonner';
 import { sendMessageWithExamples } from "~/service/AIModal.js";
 import GlobalApi from "~/service/GlobalApi.js";
 
-const prompt = "Job Title: {jobTitle}, Depends on job title give me list of summery for 3 experience levels: Fresher, Mid Level, Experienced. Provide 3-4 lines in array format with fields: summary and experience_level.";
+const prompt = "Job Title: {jobTitle}, Depends on job title give me list of summary for 3 experience levels: Fresher, Mid Level, Experienced. Provide 3-4 lines in array format with fields: summary and experience_level.";
 
 function Summery({ enabledNext }) {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
-  const [summery, setSummery] = useState('');
+  const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const params = useParams();
-  const [aiGeneratedSummeryList, setAiGeneratedSummeryList] = useState([]);
+  const [aiGeneratedSummaryList, setAiGeneratedSummaryList] = useState([]);
 
   
 
   useEffect(() => {
-    if (summery) {
+    if (summary) {
       setResumeInfo({
         ...resumeInfo,
-        summery: summery,
+        summary: summary,
       });
     }
-  }, [summery]);
+  }, [summary]);
 
-  const GenerateSummeryFromAI = async () => {
+  const GenerateSummaryFromAI = async () => {
     setLoading(true);
     const PROMPT = prompt.replace('{jobTitle}', resumeInfo?.jobTitle);
     console.log("Generated Prompt:", PROMPT);
@@ -38,19 +38,38 @@ function Summery({ enabledNext }) {
       const result = await sendMessageWithExamples(PROMPT, 'summary');
       console.log("AI Response:", result.response.text());
   
-      // Try to parse the response as JSON
+      // Multi-step robust JSON parsing
       let aiResponse;
+      const rawText = result.response.text();
+      
+      // Step 1: Try direct parse
       try {
-        aiResponse = JSON.parse(result.response.text());
-      } catch (parseError) {
-        console.error("Failed to parse AI response as JSON:", parseError);
-        toast.error("AI response format error. Please try again.");
-        return;
+        aiResponse = JSON.parse(rawText);
+      } catch (_e1) {
+        // Step 2: Strip markdown fences and retry
+        try {
+          const stripped = rawText.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+          aiResponse = JSON.parse(stripped);
+        } catch (_e2) {
+          // Step 3: Regex extract the first JSON object from the response
+          try {
+            const match = rawText.match(/\{[\s\S]*\}/);
+            if (match) {
+              aiResponse = JSON.parse(match[0]);
+            } else {
+              throw new Error("No JSON object found in response");
+            }
+          } catch (_e3) {
+            console.error("All JSON parse attempts failed. Raw text:", rawText);
+            toast.error("AI response couldn't be parsed. Please try again.");
+            return;
+          }
+        }
       }
 
       // Validate the response structure
       if (aiResponse?.summaries && Array.isArray(aiResponse.summaries)) {
-        setAiGeneratedSummeryList(
+        setAiGeneratedSummaryList(
           aiResponse.summaries.map((summaryItem) => ({
             ...summaryItem,
             summary: Array.isArray(summaryItem.summary) ? summaryItem.summary[0] : summaryItem.summary
@@ -84,7 +103,7 @@ function Summery({ enabledNext }) {
   
     const data = {
       data: {
-        summery: summery || ''  // Ensure non-null value
+        summary: summary || ''  // Ensure non-null value
       }
     };
   
@@ -111,7 +130,7 @@ function Summery({ enabledNext }) {
             <label>Add Summary</label>
             <Button
               variant="outline"
-              onClick={GenerateSummeryFromAI}
+              onClick={GenerateSummaryFromAI}
               type="button"
               size="sm"
               className="border-primary text-primary flex gap-2"
@@ -122,9 +141,9 @@ function Summery({ enabledNext }) {
           <Textarea
             className="mt-5"
             required
-            value={summery}
-            defaultValue={resumeInfo?.summery}
-            onChange={(e) => setSummery(e.target.value)}
+            value={summary}
+            defaultValue={resumeInfo?.summary}
+            onChange={(e) => setSummary(e.target.value)}
           />
           <div className="mt-2 flex justify-end">
             <Button type="submit" disabled={loading}>
@@ -134,13 +153,13 @@ function Summery({ enabledNext }) {
         </form>
       </div>
 
-      {aiGeneratedSummeryList && (
+      {aiGeneratedSummaryList && (
   <div className="my-5">
     <h2 className="font-bold text-lg">Suggestions</h2>
-    {aiGeneratedSummeryList.map((item, index) => (
+    {aiGeneratedSummaryList.map((item, index) => (
   <div
     key={index}
-    onClick={() => setSummery(item?.summary)}
+    onClick={() => setSummary(item?.summary)}
     className="p-5 shadow-lg my-4 rounded-lg cursor-pointer"
   >
     <h2 className="font-bold my-1 text-primary">

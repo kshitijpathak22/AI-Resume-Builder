@@ -7,7 +7,7 @@ function SkillsPreview({resumeInfo}) {
     style={{
         color:resumeInfo?.themeColor
     }}
-    >Education</h2>
+    >Skills</h2>
     <hr style={{
         borderColor:resumeInfo?.themeColor
     }} />
@@ -16,7 +16,7 @@ function SkillsPreview({resumeInfo}) {
         {resumeInfo?.skills.map((skill,index)=>(
             <div key={index} className='flex items-center justify-between'>
                 <h2 className='text-xs'>{skill.name}</h2>
-                <div className='h-2 bg-gray-200 w-[120px]'>
+                <div className='h-2 bg-muted w-[120px]'>
                     <div className='h-2'
                         style={{
                             backgroundColor:resumeInfo?.themeColor,

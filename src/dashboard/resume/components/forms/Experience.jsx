@@ -14,7 +14,7 @@ const formField={
     state:'',
     startDate:'',
     endDate:'',
-    workSummery:'',
+    workSummary:'',
 
 }
 function Experience() {
@@ -45,7 +45,7 @@ function Experience() {
             state:'',
             startDate:'',
             endDate:'',
-            workSummery:'',
+            workSummary:'',
         }])
     }
 
@@ -132,17 +132,33 @@ function Experience() {
                         </div>
                         <div>
                             <label className='text-xs'>End Date</label>
-                            <Input type="date" name="endDate" 
+                            {!item?.currentlyWorking && <Input type="date" name="endDate" 
                             onChange={(event)=>handleChange(index,event)} 
                             defaultValue={item?.endDate}
-                            />
+                            />}
+                            <div className='flex items-center gap-2 mt-2'>
+                                <input type="checkbox" 
+                                    id={`currentlyWorking-${index}`}
+                                    checked={item?.currentlyWorking || false}
+                                    onChange={(e) => {
+                                        const newEntries = experinceList.slice();
+                                        newEntries[index].currentlyWorking = e.target.checked;
+                                        if (e.target.checked) {
+                                            newEntries[index].endDate = '';
+                                        }
+                                        setExperinceList(newEntries);
+                                    }}
+                                    className='w-4 h-4 accent-primary'
+                                />
+                                <label htmlFor={`currentlyWorking-${index}`} className='text-xs text-muted-foreground'>I currently work here</label>
+                            </div>
                         </div>
                         <div className='col-span-2'>
                            {/* Work Summery  */}
                            <RichTextEditor
                            index={index}
-                           defaultValue={item?.workSummery}
-                           onRichTextEditorChange={(event)=>handleRichTextEditor(event,'workSummery',index)}  />
+                           defaultValue={item?.workSummary}
+                           onRichTextEditorChange={(event)=>handleRichTextEditor(event,'workSummary',index)}  />
                         </div>
                     </div>
                 </div>
