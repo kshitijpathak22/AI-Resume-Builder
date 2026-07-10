@@ -63,9 +63,11 @@ const UpdateResumeDetail = async (id, updates, token) => {
  * Get a single resume by its UUID.
  */
 const GetResumeById = async (id, token) => {
-  const res = await fetch(`${API_BASE}/api/resumes/${id}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-  });
+  const headers = {};
+  if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+  }
+  const res = await fetch(`${API_BASE}/api/resumes/${id}`, { headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Failed to fetch resume");

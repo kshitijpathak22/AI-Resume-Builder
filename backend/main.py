@@ -309,7 +309,7 @@ async def get_user_resumes(userEmail: str, payload: dict = Depends(verify_token)
 
 
 @app.get("/api/resumes/{resume_id}")
-async def get_resume_by_id(resume_id: str, payload: dict = Depends(verify_token)):
+async def get_resume_by_id(resume_id: str):
     """Get a single resume by its UUID."""
     try:
         result = supabase.table("user_resumes") \

@@ -6,6 +6,7 @@ import { useParams, Link } from 'react-router-dom';
 import GlobalApi from '~/service/GlobalApi';
 import { RWebShare } from 'react-web-share'
 import ResumePreview from '@/dashboard/resume/components/ResumePreview';
+import FreeformPreview from '@/dashboard/resume/components/FreeformPreview';
 
 function ViewResume() {
 
@@ -17,6 +18,7 @@ function ViewResume() {
     },[])
     const GetResumeInfo = async () => {
         try {
+            // No token passed for public view
             const data = await GlobalApi.GetResumeById(resumeId);
             console.log(data);
             setResumeInfo(data);
@@ -63,10 +65,14 @@ function ViewResume() {
             
         </div>
         <div className='my-10 mx-10 md:mx-20 lg:mx-36'>
-        <div id="print-area" >
-                <ResumePreview/>
+            <div id="print-area" >
+                {resumeInfo?.isFreeform ? (
+                    <FreeformPreview />
+                ) : (
+                    <ResumePreview/>
+                )}
             </div>
-            </div>
+        </div>
     </ResumeInfoContext.Provider>
   )
 }
