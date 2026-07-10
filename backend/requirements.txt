@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+langchain-google-genai
+langchain-core
+PyPDF2
+python-docx
+python-multipart
+supabase

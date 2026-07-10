@@ -7,12 +7,13 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+from supabase import create_client, Client
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from dotenv import load_dotenv
 
-# Load environment variables (to get VITE_GOOGLE_AI_API_KEY from the root .env.local)
+# Load environment variables (to get keys from the root .env.local)
 load_dotenv(dotenv_path="../.env.local")
 
 app = FastAPI()
@@ -25,7 +26,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Use the environment variable VITE_GOOGLE_AI_API_KEY from the React project
+# ─── Supabase Client ───────────────────────────────────────────────
+supabase_url = os.getenv("VITE_SUPABASE_URL")
+supabase_key = os.getenv("VITE_SUPABASE_PUBLISHABLE_KEY")
+
+if not supabase_url or not supabase_key:
+    print("WARNING: Supabase URL or Key not found in .env.local")
+
+supabase: Client = create_client(supabase_url or "", supabase_key or "")
+
+# ─── Gemini LLM ────────────────────────────────────────────────────
 api_key = os.getenv("VITE_GOOGLE_AI_API_KEY")
 if not api_key:
     api_key = os.getenv("GEMINI_API_KEY")
@@ -36,8 +46,134 @@ llm = ChatGoogleGenerativeAI(
     max_output_tokens=2048
 )
 
+# ─── camelCase ↔ snake_case mapping ────────────────────────────────
+CAMEL_TO_SNAKE = {
+    "firstName": "first_name",
+    "lastName": "last_name",
+    "jobTitle": "job_title",
+    "themeColor": "theme_color",
+    "userEmail": "user_email",
+    "userName": "user_name",
+    "resumeId": "resume_id",
+}
+
+SNAKE_TO_CAMEL = {v: k for k, v in CAMEL_TO_SNAKE.items()}
+
+
+def to_snake(data: dict) -> dict:
+    """Convert camelCase keys to snake_case for DB storage."""
+    result = {}
+    for key, value in data.items():
+        col = CAMEL_TO_SNAKE.get(key, key)
+        result[col] = value
+    return result
+
+
+def to_camel(data: dict) -> dict:
+    """Convert snake_case DB columns back to camelCase for frontend."""
+    result = dict(data)  # keep all original keys too
+    for snake, camel in SNAKE_TO_CAMEL.items():
+        if snake in data:
+            result[camel] = data[snake]
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RESUME CRUD API ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════
+
+class CreateResumeRequest(BaseModel):
+    title: str
+    resumeId: str
+    userEmail: str
+    userName: Optional[str] = None
+
+
+class UpdateResumeRequest(BaseModel):
+    updates: Dict[str, Any]
+
+
+@app.post("/api/resumes")
+async def create_resume(req: CreateResumeRequest):
+    """Create a new empty resume."""
+    try:
+        result = supabase.table("user_resumes").insert({
+            "title": req.title,
+            "resume_id": req.resumeId,
+            "user_email": req.userEmail,
+            "user_name": req.userName,
+        }).execute()
+        return to_camel(result.data[0])
+    except Exception as e:
+        print("Create resume error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/resumes")
+async def get_user_resumes(userEmail: str):
+    """Get all resumes for a user by email."""
+    try:
+        result = supabase.table("user_resumes") \
+            .select("*") \
+            .eq("user_email", userEmail) \
+            .order("created_at", desc=True) \
+            .execute()
+        return [to_camel(r) for r in result.data]
+    except Exception as e:
+        print("Get resumes error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/resumes/{resume_id}")
+async def get_resume_by_id(resume_id: str):
+    """Get a single resume by its UUID."""
+    try:
+        result = supabase.table("user_resumes") \
+            .select("*") \
+            .eq("id", resume_id) \
+            .single() \
+            .execute()
+        return to_camel(result.data)
+    except Exception as e:
+        print("Get resume error:", e)
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.put("/api/resumes/{resume_id}")
+async def update_resume(resume_id: str, req: UpdateResumeRequest):
+    """Update a resume's fields."""
+    try:
+        mapped = to_snake(req.updates)
+        result = supabase.table("user_resumes") \
+            .update(mapped) \
+            .eq("id", resume_id) \
+            .execute()
+        return to_camel(result.data[0]) if result.data else {"success": True}
+    except Exception as e:
+        print("Update resume error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/resumes/{resume_id}")
+async def delete_resume(resume_id: str):
+    """Delete a resume by its UUID."""
+    try:
+        supabase.table("user_resumes") \
+            .delete() \
+            .eq("id", resume_id) \
+            .execute()
+        return {"success": True}
+    except Exception as e:
+        print("Delete resume error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# INTERVIEW AI ENDPOINTS (existing)
+# ═══════════════════════════════════════════════════════════════════
+
 class MessageData(BaseModel):
-    role: str # "system", "human", or "ai"
+    role: str  # "system", "human", or "ai"
     content: str
 
 class NextQuestionRequest(BaseModel):
@@ -153,6 +289,11 @@ async def get_hint(req: HintRequest):
     except Exception as e:
         print("Error generating hint:", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RESUME PARSING ENDPOINT (existing)
+# ═══════════════════════════════════════════════════════════════════
 
 @app.post("/api/resume/parse")
 async def parse_resume(file: UploadFile = File(...)):
