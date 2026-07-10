@@ -150,6 +150,7 @@ CAMEL_TO_SNAKE = {
     "userEmail": "user_email",
     "userName": "user_name",
     "resumeId": "resume_id",
+    "Education": "education",
 }
 
 SNAKE_TO_CAMEL = {v: k for k, v in CAMEL_TO_SNAKE.items()}
