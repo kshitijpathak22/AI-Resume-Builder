@@ -89,6 +89,7 @@ const DeleteResumeById = async (id, token) => {
 };
 
 export default {
+  API_BASE,
   CreateNewResume,
   GetUserResumes,
   UpdateResumeDetail,

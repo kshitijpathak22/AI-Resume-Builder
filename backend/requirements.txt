@@ -8,3 +8,5 @@ python-docx
 python-multipart
 supabase
 PyJWT[crypto]
+pymupdf4llm
+markdown

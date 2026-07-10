@@ -6,6 +6,9 @@ import base64
 import PyPDF2
 import docx
 import jwt
+import tempfile
+import pymupdf4llm
+import markdown
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -192,6 +195,7 @@ CAMEL_TO_SNAKE = {
     "userName": "user_name",
     "resumeId": "resume_id",
     "Education": "education",
+    "isFreeform": "is_freeform",
 }
 
 SNAKE_TO_CAMEL = {v: k for k, v in CAMEL_TO_SNAKE.items()}
@@ -263,6 +267,8 @@ class ResumeUpdates(BaseModel):
     Experience: Optional[List[ExperienceItem]] = None
     Education: Optional[List[EducationItem]] = None
     skills: Optional[List[SkillItem]] = None
+    isFreeform: Optional[bool] = None
+    content: Optional[str] = None
     
     class Config:
         extra = "allow" # allow extra fields to prevent breaking changes if new fields are added
@@ -487,13 +493,19 @@ async def parse_resume(file: UploadFile = File(...), payload: dict = Depends(ver
     try:
         content = await file.read()
         if file.filename.lower().endswith('.pdf'):
-            pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
-            for page in pdf_reader.pages:
-                text += page.extract_text() + "\n"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(content)
+                tmp_path = tmp.name
+            
+            try:
+                # Use pymupdf4llm to extract Markdown preserving layout
+                text = pymupdf4llm.to_markdown(tmp_path)
+            finally:
+                os.remove(tmp_path)
         elif file.filename.lower().endswith('.docx'):
             doc = docx.Document(io.BytesIO(content))
             for para in doc.paragraphs:
-                text += para.text + "\n"
+                text += para.text + "\n\n"
         else:
             raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
     except HTTPException:
@@ -505,75 +517,9 @@ async def parse_resume(file: UploadFile = File(...), payload: dict = Depends(ver
     if not text.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from the document.")
 
-    parse_prompt = f"""
-    You are an expert resume parser. I will provide you with the raw text extracted from a user's resume document.
-    Your task is to parse this text and map it STRICTLY to the following JSON structure. 
-    If information is missing, leave the string empty "" or array empty []. Do not make up information.
-    
-    CRITICAL RULES FOR JSON OUTPUT:
-    1. You MUST return ONLY a valid JSON object — no markdown, no code fences, no explanation text.
-    2. ALL string values must be on a SINGLE LINE. Do NOT put literal newlines inside string values.
-    3. For workSummary, use HTML tags like <br/>, <ul>, <li> for formatting — never raw newlines.
-    4. Properly escape all special characters in strings.
-    
-    REQUIRED JSON STRUCTURE:
-    {{
-      "firstName": "string",
-      "lastName": "string",
-      "jobTitle": "string",
-      "address": "string",
-      "phone": "string",
-      "email": "string",
-      "themeColor": "#0ea5e9", 
-      "summary": "A single-line string with the professional summary",
-      "Experience": [
-        {{
-          "title": "string",
-          "companyName": "string",
-          "city": "string",
-          "state": "string",
-          "startDate": "string (YYYY-MM-DD or MM/YYYY)",
-          "endDate": "string (YYYY-MM-DD or MM/YYYY or Present)",
-          "workSummary": "HTML string on ONE line using <p>, <ul>, <li> tags"
-        }}
-      ],
-      "Education": [
-        {{
-          "universityName": "string",
-          "startDate": "string",
-          "endDate": "string",
-          "degree": "string",
-          "major": "string",
-          "description": "string"
-        }}
-      ],
-      "skills": [
-        {{
-          "name": "string",
-          "rating": 100
-        }}
-      ]
-    }}
-    
-    RAW RESUME TEXT:
-    {text}
-    """
-
-    # Try up to 2 times — if the first attempt produces bad JSON, retry once
-    last_error = None
-    for attempt in range(2):
-        try:
-            response = llm.invoke([HumanMessage(content=parse_prompt)])
-            parsed_data = robust_json_parse(response.content)
-            return parsed_data
-        except (ValueError, json.JSONDecodeError) as e:
-            last_error = e
-            print(f"Attempt {attempt + 1} failed to parse JSON: {e}")
-            continue
-        except Exception as e:
-            print("Error invoking Gemini:", e)
-            raise HTTPException(status_code=500, detail=str(e))
-    
-    # Both attempts failed
-    print(f"All parse attempts failed. Last error: {last_error}")
-    raise HTTPException(status_code=500, detail=f"AI returned invalid JSON after 2 attempts: {str(last_error)}")
+    # Return the parsed HTML as freeform content instead of calling Gemini
+    html_content = markdown.markdown(text, extensions=['tables', 'fenced_code'])
+    return {
+        "isFreeform": True,
+        "content": html_content
+    }
