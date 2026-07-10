@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import io
 import PyPDF2
@@ -13,8 +14,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from dotenv import load_dotenv
 
-# Load environment variables (to get keys from the root .env.local)
+# Load environment variables
+# Try the parent .env.local (local dev) — on Render this silently does nothing
+# because Render sets env vars via its own dashboard.
 load_dotenv(dotenv_path="../.env.local")
+load_dotenv()  # Also try .env in current directory
 
 app = FastAPI()
 
@@ -26,25 +30,116 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ─── Health check ──────────────────────────────────────────────────
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 # ─── Supabase Client ───────────────────────────────────────────────
 supabase_url = os.getenv("VITE_SUPABASE_URL")
 supabase_key = os.getenv("VITE_SUPABASE_PUBLISHABLE_KEY")
 
 if not supabase_url or not supabase_key:
-    print("WARNING: Supabase URL or Key not found in .env.local")
+    print("WARNING: Supabase URL or Key not found. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.")
 
 supabase: Client = create_client(supabase_url or "", supabase_key or "")
 
 # ─── Gemini LLM ────────────────────────────────────────────────────
-api_key = os.getenv("VITE_GOOGLE_AI_API_KEY")
-if not api_key:
-    api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("VITE_GOOGLE_AI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     google_api_key=api_key,
-    max_output_tokens=2048
+    max_output_tokens=4096
 )
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ROBUST JSON PARSING UTILITY
+# ═══════════════════════════════════════════════════════════════════
+
+def robust_json_parse(raw_text: str) -> dict:
+    """
+    Parse JSON from LLM output with multiple fallback strategies.
+    LLMs frequently produce slightly malformed JSON (raw newlines in strings,
+    markdown wrappers, trailing commas, etc.). This function handles all of those.
+    """
+    # Step 1: Strip markdown code fences
+    text = raw_text.strip()
+    text = re.sub(r'^```(?:json)?\s*', '', text)
+    text = re.sub(r'\s*```$', '', text)
+    text = text.strip()
+
+    # Step 2: Try direct parse first (fast path)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Step 3: Fix common LLM JSON issues
+    # 3a: Remove trailing commas before } or ]
+    cleaned = re.sub(r',\s*([}\]])', r'\1', text)
+
+    # 3b: Fix raw newlines inside JSON string values
+    # This is the main culprit for "Unterminated string" errors.
+    # We walk through char by char and replace literal \n inside strings with \\n
+    fixed_chars = []
+    in_string = False
+    escape_next = False
+    for ch in cleaned:
+        if escape_next:
+            fixed_chars.append(ch)
+            escape_next = False
+            continue
+        if ch == '\\':
+            fixed_chars.append(ch)
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            fixed_chars.append(ch)
+            continue
+        if in_string and ch == '\n':
+            fixed_chars.append(' ')  # Replace raw newline with space
+            continue
+        if in_string and ch == '\r':
+            continue  # Skip carriage returns inside strings
+        if in_string and ch == '\t':
+            fixed_chars.append(' ')  # Replace tabs with space
+            continue
+        fixed_chars.append(ch)
+
+    cleaned = ''.join(fixed_chars)
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    # Step 4: Try to extract JSON object from surrounding text
+    # Sometimes the LLM wraps JSON in explanation text
+    match = re.search(r'\{[\s\S]*\}', cleaned)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError:
+            pass
+
+    # Step 5: Last resort — try fixing with aggressive cleanup
+    # Remove all control characters except \n (which we already handled)
+    last_resort = re.sub(r'[\x00-\x1f\x7f]', ' ', text)
+    last_resort = re.sub(r',\s*([}\]])', r'\1', last_resort)
+    match = re.search(r'\{[\s\S]*\}', last_resort)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse JSON after all cleanup attempts: {e}\nRaw text (first 500 chars): {raw_text[:500]}")
+
+    raise ValueError(f"No JSON object found in LLM response. Raw text (first 500 chars): {raw_text[:500]}")
+
 
 # ─── camelCase ↔ snake_case mapping ────────────────────────────────
 CAMEL_TO_SNAKE = {
@@ -169,7 +264,7 @@ async def delete_resume(resume_id: str):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# INTERVIEW AI ENDPOINTS (existing)
+# INTERVIEW AI ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════
 
 class MessageData(BaseModel):
@@ -204,7 +299,6 @@ def parse_history(history: List[MessageData]):
 async def next_question(req: NextQuestionRequest):
     messages = parse_history(req.history)
     
-    # If history is empty, initialize system prompt
     if not messages:
         sys_prompt = f"""
       You are an expert technical and behavioral interviewer.
@@ -221,7 +315,6 @@ async def next_question(req: NextQuestionRequest):
       7. For your very first message, just ask the first interview question directly.
         """
         messages.append(SystemMessage(content=sys_prompt))
-        # Gemini requires at least one human message to generate a response
         messages.append(HumanMessage(content="Hi! I am ready to begin the interview. Please ask the first question."))
     
     elif req.userAnswer:
@@ -266,8 +359,16 @@ async def final_feedback(req: FeedbackRequest):
     
     try:
         response = llm.invoke([HumanMessage(content=feedback_prompt)])
-        json_str = response.content.replace("```json", "").replace("```", "").strip()
-        return json.loads(json_str)
+        return robust_json_parse(response.content)
+    except ValueError as e:
+        print("Error parsing feedback JSON:", e)
+        # Return a graceful fallback instead of crashing
+        return {
+            "score": "N/A",
+            "strengths": ["Could not generate detailed feedback"],
+            "weaknesses": ["Please try again"],
+            "betterAnswers": ["The AI response was malformed. Please retry the interview."]
+        }
     except Exception as e:
         print("Error generating feedback:", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -292,7 +393,7 @@ async def get_hint(req: HintRequest):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# RESUME PARSING ENDPOINT (existing)
+# RESUME PARSING ENDPOINT
 # ═══════════════════════════════════════════════════════════════════
 
 @app.post("/api/resume/parse")
@@ -310,6 +411,8 @@ async def parse_resume(file: UploadFile = File(...)):
                 text += para.text + "\n"
         else:
             raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
+    except HTTPException:
+        raise
     except Exception as e:
         print("Error reading file:", e)
         raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
@@ -322,10 +425,11 @@ async def parse_resume(file: UploadFile = File(...)):
     Your task is to parse this text and map it STRICTLY to the following JSON structure. 
     If information is missing, leave the string empty "" or array empty []. Do not make up information.
     
-    CRITICAL RULES FOR JSON:
-    1. You MUST properly escape all double quotes (\\") inside string values.
-    2. You MUST NOT include raw literal newline characters inside string values. Replace them with spaces or HTML tags like <br/>.
-    3. The output MUST be perfectly valid JSON parseable by standard JSON parsers.
+    CRITICAL RULES FOR JSON OUTPUT:
+    1. You MUST return ONLY a valid JSON object — no markdown, no code fences, no explanation text.
+    2. ALL string values must be on a SINGLE LINE. Do NOT put literal newlines inside string values.
+    3. For workSummary, use HTML tags like <br/>, <ul>, <li> for formatting — never raw newlines.
+    4. Properly escape all special characters in strings.
     
     REQUIRED JSON STRUCTURE:
     {{
@@ -336,7 +440,7 @@ async def parse_resume(file: UploadFile = File(...)):
       "phone": "string",
       "email": "string",
       "themeColor": "#0ea5e9", 
-      "summary": "string (professional summary)",
+      "summary": "A single-line string with the professional summary",
       "Experience": [
         {{
           "title": "string",
@@ -345,7 +449,7 @@ async def parse_resume(file: UploadFile = File(...)):
           "state": "string",
           "startDate": "string (YYYY-MM-DD or MM/YYYY)",
           "endDate": "string (YYYY-MM-DD or MM/YYYY or Present)",
-          "workSummary": "string (Detailed HTML format starting with <p> and using <ul><li> for bullet points. IMPORTANT: Format this properly as HTML so it renders nicely in a Rich Text Editor)"
+          "workSummary": "HTML string on ONE line using <p>, <ul>, <li> tags"
         }}
       ],
       "Education": [
@@ -368,15 +472,23 @@ async def parse_resume(file: UploadFile = File(...)):
     
     RAW RESUME TEXT:
     {text}
-    
-    You MUST return ONLY the raw JSON object with no markdown formatting, no code blocks, and no backticks.
     """
+
+    # Try up to 2 times — if the first attempt produces bad JSON, retry once
+    last_error = None
+    for attempt in range(2):
+        try:
+            response = llm.invoke([HumanMessage(content=parse_prompt)])
+            parsed_data = robust_json_parse(response.content)
+            return parsed_data
+        except (ValueError, json.JSONDecodeError) as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed to parse JSON: {e}")
+            continue
+        except Exception as e:
+            print("Error invoking Gemini:", e)
+            raise HTTPException(status_code=500, detail=str(e))
     
-    try:
-        response = llm.invoke([HumanMessage(content=parse_prompt)])
-        json_str = response.content.replace("```json", "").replace("```", "").strip()
-        parsed_data = json.loads(json_str)
-        return parsed_data
-    except Exception as e:
-        print("Error parsing with Gemini:", e)
-        raise HTTPException(status_code=500, detail=str(e))
+    # Both attempts failed
+    print(f"All parse attempts failed. Last error: {last_error}")
+    raise HTTPException(status_code=500, detail=f"AI returned invalid JSON after 2 attempts: {str(last_error)}")
