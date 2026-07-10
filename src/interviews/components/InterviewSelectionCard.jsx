@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 function InterviewSelectionCard({resume}) {
   return (
        <div className='group active:scale-[0.97] transition-transform duration-200 cursor-pointer'>
-          <Link to={'/my-resume/'+resume.documentId+'/interview'}>
+          <Link to={'/my-resume/'+resume.id+'/interview'}>
             <div className='p-14 card-glass h-[280px] rounded-t-xl border-t-4 transition-all hover:border-primary hover:shadow-[0_0_2rem_-0.5rem_rgba(91,63,217,0.5)] relative flex flex-col items-center justify-center'
             style={{ borderColor: resume?.themeColor || 'var(--primary)' }}>
                 

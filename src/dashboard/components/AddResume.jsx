@@ -27,23 +27,20 @@ function AddResume() {
     const onCreate = async () => {
         setLoading(true)
         const uuid = uuidv4();
-        const data = {
-            data: {
+
+        try {
+            const result = await GlobalApi.CreateNewResume({
                 title: resumeTitle,
                 resumeId: uuid,
                 userEmail: user?.primaryEmailAddress?.emailAddress,
                 userName: user?.fullName
-            }
-        }
-
-        GlobalApi.CreateNewResume(data).then(resp => {
-            if (resp) {
-                setLoading(false);
-                navigation('/dashboard/resume/' + resp.data.data.documentId + "/edit");
-            }
-        }, (error) => {
+            });
             setLoading(false);
-        })
+            navigation('/dashboard/resume/' + result.id + "/edit");
+        } catch (error) {
+            console.error("Create error:", error);
+            setLoading(false);
+        }
     }
 
     const handleFileUpload = async (e) => {
@@ -56,7 +53,7 @@ function AddResume() {
 
         try {
             // 1. Parse Resume with Python AI backend
-            const parseRes = await fetch("http://localhost:8000/api/resume/parse", {
+            const parseRes = await fetch(`${GlobalApi.API_BASE || import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/resume/parse`, {
                 method: "POST",
                 body: formData
             });
@@ -70,26 +67,21 @@ function AddResume() {
             
             // 2. Create an empty resume container first
             const uuid = uuidv4();
-            const createPayload = {
-                data: {
-                    title: file.name.split('.')[0] + ' (Parsed)',
-                    resumeId: uuid,
-                    userEmail: user?.primaryEmailAddress?.emailAddress,
-                    userName: user?.fullName
-                }
-            };
-
-            const createRes = await GlobalApi.CreateNewResume(createPayload);
-            const documentId = createRes.data.data.documentId;
+            const result = await GlobalApi.CreateNewResume({
+                title: file.name.split('.')[0] + ' (Parsed)',
+                resumeId: uuid,
+                userEmail: user?.primaryEmailAddress?.emailAddress,
+                userName: user?.fullName
+            });
 
             // 3. Update the newly created resume with the parsed JSON data
-            await GlobalApi.UpdateResumeDetail(documentId, { data: parsedData });
+            await GlobalApi.UpdateResumeDetail(result.id, parsedData);
 
             toast("Resume parsed successfully!");
             setUploadLoading(false);
             
             // 4. Navigate to editor
-            navigation('/dashboard/resume/' + documentId + "/edit");
+            navigation('/dashboard/resume/' + result.id + "/edit");
 
         } catch (error) {
             console.error("Upload Error:", error);

@@ -69,24 +69,18 @@ function Experience() {
     },[experinceList]);
 
 
-    const onSave=()=>{
+    const onSave = async () => {
         setLoading(true)
-        const data={
-            data:{
-                Experience:experinceList.map(({ id, ...rest }) => rest)
-            }
-        }
-
-         console.log(experinceList)
-
-        GlobalApi.UpdateResumeDetail(params?.resumeId,data).then(res=>{
-            console.log(res);
-            setLoading(false);
+        try {
+            await GlobalApi.UpdateResumeDetail(params?.resumeId, {
+                Experience: experinceList.map(({ id, ...rest }) => rest)
+            });
             toast('Details updated !')
-        },(error)=>{
+        } catch (error) {
+            console.error("Save error:", error);
+        } finally {
             setLoading(false);
-        })
-
+        }
     }
   return (
     <div>

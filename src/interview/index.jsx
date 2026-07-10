@@ -28,13 +28,17 @@ function InterviewPage() {
   const screenRecorder = useScreenRecorder();
 
   useEffect(() => {
-    GlobalApi.GetResumeById(resumeId).then(resp => {
-      setResumeData(resp.data.data);
-      setLoading(false);
-    }).catch(e => {
-      console.error("Error loading resume:", e);
-      setLoading(false);
-    });
+    const loadResume = async () => {
+      try {
+        const data = await GlobalApi.GetResumeById(resumeId);
+        setResumeData(data);
+        setLoading(false);
+      } catch (e) {
+        console.error("Error loading resume:", e);
+        setLoading(false);
+      }
+    };
+    loadResume();
   }, [resumeId]);
 
   // Wire up Gemini Live audio callbacks to the TalkingHead avatar
@@ -73,7 +77,7 @@ function InterviewPage() {
       const history = geminiLive.transcript;
       
       try {
-          const res = await fetch("http://localhost:8000/api/interview/feedback", {
+          const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/interview/feedback`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ history })
@@ -124,7 +128,7 @@ function InterviewPage() {
 
       setFetchingHint(true);
       try {
-          const res = await fetch("http://localhost:8000/api/interview/hint", {
+          const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/interview/hint`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ resumeData, currentQuestion, currentAnswer })

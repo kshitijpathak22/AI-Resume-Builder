@@ -34,21 +34,18 @@ function PersonalDetail({enabledNext}) {
       })
   }
 
-  const onSave=(e)=>{
+  const onSave = async (e) => {
       e.preventDefault();
       setLoading(true)
-      const data={
-          data:formData
-      }
-      GlobalApi.UpdateResumeDetail(params?.resumeId,data).then(resp=>{
-          console.log(resp);
+      try {
+          await GlobalApi.UpdateResumeDetail(params?.resumeId, formData);
           enabledNext(true);
-          setLoading(false);
           toast("Details updated")
-      },(error)=>{
+      } catch (error) {
+          console.error("Save error:", error);
+      } finally {
           setLoading(false);
-      })
-      
+      }
   }
 return (
   <div className='p-5 shadow-lg rounded-lg border-t-primary border-t-4 mt-10'>

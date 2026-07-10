@@ -14,11 +14,13 @@ function Dashboard() {
     user&&GetResumeList()
   },[user])
 /**used to get user Resume List */
-  const GetResumeList=()=>{
-    GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress)
-    .then(resp=>{
-      setResumeList(resp.data.data); 
-    })
+  const GetResumeList = async () => {
+    try {
+      const data = await GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress);
+      setResumeList(data);
+    } catch (error) {
+      console.error("Error fetching resumes:", error);
+    }
   }
 
   return (

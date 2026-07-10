@@ -22,21 +22,18 @@ function ThemeColor() {
     const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
     const [selectedColor,setSelectedColor]=useState();
     const {resumeId}=useParams();
-    const onColorSelect=(color)=>{
+    const onColorSelect = async (color) => {
         setSelectedColor(color)
         setResumeInfo({
             ...resumeInfo,
             themeColor:color
         });
-        const data={
-            data:{
-                themeColor:color
-            }
-        }
-        GlobalApi.UpdateResumeDetail(resumeId,data).then(resp=>{
-            console.log(resp);
+        try {
+            await GlobalApi.UpdateResumeDetail(resumeId, { themeColor: color });
             toast('Theme Color Updated')
-        })
+        } catch (error) {
+            console.error("Theme update error:", error);
+        }
     }
 
   return (

@@ -52,23 +52,19 @@ function Education() {
     setEducationalList(educationalList=>educationalList.slice(0,-1))
 
   }
-  const onSave=()=>{
+  const onSave = async () => {
     setLoading(true)
-    const data={
-      data:{
-        education:educationalList.map(({ id, ...rest }) => rest)
-      }
-    }
-
-    GlobalApi.UpdateResumeDetail(params.resumeId,data).then(resp=>{
-      console.log(resp);
-      setLoading(false)
+    try {
+      await GlobalApi.UpdateResumeDetail(params.resumeId, {
+        education: educationalList.map(({ id, ...rest }) => rest)
+      });
       toast('Details updated !')
-    },(error)=>{
-      setLoading(false);
+    } catch (error) {
+      console.error("Save error:", error);
       toast('Server Error, Please try again!')
-    })
-
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(()=>{

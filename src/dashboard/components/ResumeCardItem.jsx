@@ -33,22 +33,23 @@ function ResumeCardItem({resume,refreshData}) {
   // }
 
 
-  const onDelete=()=>{
+  const onDelete = async () => {
     setLoading(true);
-    GlobalApi.DeleteResumeById(resume.documentId).then(resp=>{
-      console.log(resp);
+    try {
+      await GlobalApi.DeleteResumeById(resume.id);
       toast('Resume Deleted!');
-      refreshData()
-      setLoading(false);
+      refreshData();
       setOpenAlert(false);
-    },(error)=>{
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
       setLoading(false);
-    })
+    }
   }
   return (
     
        <div className='group active:scale-[0.97] transition-transform duration-200 cursor-pointer'>
-          <Link to={'/dashboard/resume/'+resume.documentId+"/edit"}>
+          <Link to={'/dashboard/resume/'+resume.id+"/edit"}>
         <div className='p-14 card-glass h-[280px] rounded-t-xl border-t-4 transition-all hover:border-primary hover:shadow-[0_0_2rem_-0.5rem_rgba(91,63,217,0.5)] relative flex flex-col items-center justify-center'
         style={{
           borderColor:resume?.themeColor || 'var(--primary)'
@@ -90,9 +91,9 @@ function ResumeCardItem({resume,refreshData}) {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
            
-            <DropdownMenuItem  onClick={()=>navigation('/dashboard/resume/'+resume.documentId+"/edit")}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>navigation('/my-resume/'+resume.documentId+"/view")}>View</DropdownMenuItem>
-            <DropdownMenuItem onClick={()=>navigation('/my-resume/'+resume.documentId+"/view")}>Download</DropdownMenuItem>
+            <DropdownMenuItem  onClick={()=>navigation('/dashboard/resume/'+resume.id+"/edit")}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>navigation('/my-resume/'+resume.id+"/view")}>View</DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>navigation('/my-resume/'+resume.id+"/view")}>Download</DropdownMenuItem>
             <DropdownMenuItem onClick={()=>setOpenAlert(true)}>Delete</DropdownMenuItem>
             
           </DropdownMenuContent>

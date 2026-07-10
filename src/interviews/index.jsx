@@ -14,15 +14,16 @@ function InterviewDashboard() {
     user&&GetResumeList()
   },[user])
 
-  const GetResumeList=()=>{
+  const GetResumeList = async () => {
     setLoading(true);
-    GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress)
-    .then(resp=>{
-      setResumeList(resp.data.data); 
+    try {
+      const data = await GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress);
+      setResumeList(data);
+    } catch (e) {
+      console.error("Error fetching resumes:", e);
+    } finally {
       setLoading(false);
-    }).catch((e) => {
-        setLoading(false);
-    })
+    }
   }
 
   return (

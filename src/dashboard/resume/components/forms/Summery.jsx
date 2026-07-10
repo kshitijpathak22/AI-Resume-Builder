@@ -97,26 +97,22 @@ function Summery({ enabledNext }) {
   };
   
 
-  const onSave = (e) => {
+  const onSave = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
-    const data = {
-      data: {
-        summary: summary || ''  // Ensure non-null value
-      }
-    };
-  
-    GlobalApi.UpdateResumeDetail(params.resumeId, data)
-      .then(resp => {
-        enabledNext(true);
-        toast.success('Details updated successfully');
-      })
-      .catch(error => {
-        console.error('Error details:', error.response?.data);
-        toast.error(error.response?.data?.error?.message || 'Update failed');
-      })
-      .finally(() => setLoading(false));
+
+    try {
+      await GlobalApi.UpdateResumeDetail(params.resumeId, {
+        summary: summary || ''
+      });
+      enabledNext(true);
+      toast.success('Details updated successfully');
+    } catch (error) {
+      console.error('Error details:', error);
+      toast.error(error.message || 'Update failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

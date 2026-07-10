@@ -16,11 +16,14 @@ function EditResume() {
   },[])
 
 
-  const GetResumeInfo=()=>{
-      GlobalApi.GetResumeById(resumeId).then(resp=>{
-        console.log(resp.data.data);
-        setResumeInfo(resp.data.data);
-      })
+  const GetResumeInfo = async () => {
+    try {
+      const data = await GlobalApi.GetResumeById(resumeId);
+      console.log(data);
+      setResumeInfo(data);
+    } catch (error) {
+      console.error("Error loading resume:", error);
+    }
   }
 
 return (
