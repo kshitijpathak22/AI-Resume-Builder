@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { v4 as uuidv4 } from 'uuid';
 import GlobalApi from "~/service/GlobalApi.js";
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -23,6 +23,7 @@ function AddResume() {
     const [uploadLoading, setUploadLoading] = useState(false);
     const navigation = useNavigate();
     const fileInputRef = useRef(null);
+    const { getToken } = useAuth();
 
     const onCreate = async () => {
         setLoading(true)
@@ -34,7 +35,7 @@ function AddResume() {
                 resumeId: uuid,
                 userEmail: user?.primaryEmailAddress?.emailAddress,
                 userName: user?.fullName
-            });
+            }, await getToken());
             setLoading(false);
             navigation('/dashboard/resume/' + result.id + "/edit");
         } catch (error) {
@@ -53,8 +54,12 @@ function AddResume() {
 
         try {
             // 1. Parse Resume with Python AI backend
-            const parseRes = await fetch(`${GlobalApi.API_BASE || import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/resume/parse`, {
+            const token = await getToken();
+            const parseRes = await fetch(`${GlobalApi.API_BASE}/api/resume/parse`, {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
                 body: formData
             });
 
@@ -72,10 +77,10 @@ function AddResume() {
                 resumeId: uuid,
                 userEmail: user?.primaryEmailAddress?.emailAddress,
                 userName: user?.fullName
-            });
+            }, token);
 
             // 3. Update the newly created resume with the parsed JSON data
-            await GlobalApi.UpdateResumeDetail(result.id, parsedData);
+            await GlobalApi.UpdateResumeDetail(result.id, parsedData, token);
 
             toast("Resume parsed successfully!");
             setUploadLoading(false);

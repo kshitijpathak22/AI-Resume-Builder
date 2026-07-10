@@ -2,9 +2,12 @@ import os
 import re
 import json
 import io
+import base64
 import PyPDF2
 import docx
-from fastapi import FastAPI, HTTPException, UploadFile, File
+import jwt
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -29,6 +32,44 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── Clerk JWT Security ─────────────────────────────────────────────
+security = HTTPBearer()
+
+publishable_key = os.getenv("VITE_CLERK_PUBLISHABLE_KEY")
+CLERK_JWKS_URL = ""
+if publishable_key:
+    try:
+        parts = publishable_key.split('_')
+        if len(parts) >= 3:
+            b64_str = parts[2]
+            b64_str += "=" * ((4 - len(b64_str) % 4) % 4)
+            decoded = base64.b64decode(b64_str).decode('utf-8')
+            if decoded.endswith('$'):
+                decoded = decoded[:-1]
+            CLERK_JWKS_URL = f"https://{decoded}/.well-known/jwks.json"
+    except Exception as e:
+        print("Failed to decode Clerk publishable key:", e)
+
+jwks_client = jwt.PyJWKClient(CLERK_JWKS_URL) if CLERK_JWKS_URL else None
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if not jwks_client:
+        print("Warning: Clerk JWKS URL not configured, skipping token verification.")
+        return {"sub": "dev_user"}
+        
+    token = credentials.credentials
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            options={"verify_aud": False}
+        )
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
 
 # ─── Health check ──────────────────────────────────────────────────
@@ -185,12 +226,53 @@ class CreateResumeRequest(BaseModel):
     userName: Optional[str] = None
 
 
+class ExperienceItem(BaseModel):
+    title: Optional[str] = None
+    companyName: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    startDate: Optional[str] = None
+    endDate: Optional[str] = None
+    workSummary: Optional[str] = None
+
+class EducationItem(BaseModel):
+    universityName: Optional[str] = None
+    startDate: Optional[str] = None
+    endDate: Optional[str] = None
+    degree: Optional[str] = None
+    major: Optional[str] = None
+    description: Optional[str] = None
+
+class SkillItem(BaseModel):
+    name: Optional[str] = None
+    rating: Optional[int] = None
+
+class ResumeUpdates(BaseModel):
+    title: Optional[str] = None
+    resumeId: Optional[str] = None
+    userEmail: Optional[str] = None
+    userName: Optional[str] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    jobTitle: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    themeColor: Optional[str] = None
+    summary: Optional[str] = None
+    Experience: Optional[List[ExperienceItem]] = None
+    Education: Optional[List[EducationItem]] = None
+    skills: Optional[List[SkillItem]] = None
+    
+    class Config:
+        extra = "allow" # allow extra fields to prevent breaking changes if new fields are added
+
 class UpdateResumeRequest(BaseModel):
-    updates: Dict[str, Any]
+    updates: ResumeUpdates
 
 
 @app.post("/api/resumes")
-async def create_resume(req: CreateResumeRequest):
+async def create_resume(req: CreateResumeRequest, payload: dict = Depends(verify_token)):
     """Create a new empty resume."""
     try:
         result = supabase.table("user_resumes").insert({
@@ -206,7 +288,7 @@ async def create_resume(req: CreateResumeRequest):
 
 
 @app.get("/api/resumes")
-async def get_user_resumes(userEmail: str):
+async def get_user_resumes(userEmail: str, payload: dict = Depends(verify_token)):
     """Get all resumes for a user by email."""
     try:
         result = supabase.table("user_resumes") \
@@ -221,7 +303,7 @@ async def get_user_resumes(userEmail: str):
 
 
 @app.get("/api/resumes/{resume_id}")
-async def get_resume_by_id(resume_id: str):
+async def get_resume_by_id(resume_id: str, payload: dict = Depends(verify_token)):
     """Get a single resume by its UUID."""
     try:
         result = supabase.table("user_resumes") \
@@ -236,10 +318,12 @@ async def get_resume_by_id(resume_id: str):
 
 
 @app.put("/api/resumes/{resume_id}")
-async def update_resume(resume_id: str, req: UpdateResumeRequest):
+async def update_resume(resume_id: str, req: UpdateResumeRequest, payload: dict = Depends(verify_token)):
     """Update a resume's fields."""
     try:
-        mapped = to_snake(req.updates)
+        # Convert pydantic model to dict, exclude unset values so we don't overwrite with None
+        updates_dict = req.updates.model_dump(exclude_unset=True)
+        mapped = to_snake(updates_dict)
         result = supabase.table("user_resumes") \
             .update(mapped) \
             .eq("id", resume_id) \
@@ -251,7 +335,7 @@ async def update_resume(resume_id: str, req: UpdateResumeRequest):
 
 
 @app.delete("/api/resumes/{resume_id}")
-async def delete_resume(resume_id: str):
+async def delete_resume(resume_id: str, payload: dict = Depends(verify_token)):
     """Delete a resume by its UUID."""
     try:
         supabase.table("user_resumes") \
@@ -297,7 +381,7 @@ def parse_history(history: List[MessageData]):
     return parsed
 
 @app.post("/api/interview/next")
-async def next_question(req: NextQuestionRequest):
+async def next_question(req: NextQuestionRequest, payload: dict = Depends(verify_token)):
     messages = parse_history(req.history)
     
     if not messages:
@@ -334,7 +418,7 @@ async def next_question(req: NextQuestionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/interview/feedback")
-async def final_feedback(req: FeedbackRequest):
+async def final_feedback(req: FeedbackRequest, payload: dict = Depends(verify_token)):
     transcript_lines = []
     for m in req.history:
         if m.role == "human":
@@ -375,7 +459,7 @@ async def final_feedback(req: FeedbackRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/interview/hint")
-async def get_hint(req: HintRequest):
+async def get_hint(req: HintRequest, payload: dict = Depends(verify_token)):
     hint_prompt = f"""
     The candidate is currently answering this interview question: "{req.currentQuestion}"
     Based on their resume: {json.dumps(req.resumeData)}
@@ -398,7 +482,7 @@ async def get_hint(req: HintRequest):
 # ═══════════════════════════════════════════════════════════════════
 
 @app.post("/api/resume/parse")
-async def parse_resume(file: UploadFile = File(...)):
+async def parse_resume(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
     text = ""
     try:
         content = await file.read()

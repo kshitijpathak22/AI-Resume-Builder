@@ -6,6 +6,7 @@ import TalkingHeadAvatar from './components/TalkingHeadAvatar'
 import GlobalApi from '~/service/GlobalApi'
 import { useParams } from 'react-router-dom'
 import { Loader2, CheckCircle2, Video, VideoOff, Lightbulb } from 'lucide-react'
+import { useAuth } from '@clerk/clerk-react'
 import { useGeminiLive } from './hooks/useGeminiLive'
 import { useScreenRecorder } from './hooks/useScreenRecorder'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ function InterviewPage() {
   const [fetchingHint, setFetchingHint] = useState(false);
 
   const avatarRef = useRef(null);
+  const { getToken } = useAuth();
 
   const apiKey = import.meta.env.VITE_GOOGLE_AI_API_KEY;
 
@@ -30,7 +32,8 @@ function InterviewPage() {
   useEffect(() => {
     const loadResume = async () => {
       try {
-        const data = await GlobalApi.GetResumeById(resumeId);
+        const token = await getToken();
+        const data = await GlobalApi.GetResumeById(resumeId, token);
         setResumeData(data);
         setLoading(false);
       } catch (e) {
@@ -77,9 +80,13 @@ function InterviewPage() {
       const history = geminiLive.transcript;
       
       try {
-          const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/interview/feedback`, {
+          const token = await getToken();
+          const res = await fetch(`${GlobalApi.API_BASE}/api/interview/feedback`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+              },
               body: JSON.stringify({ history })
           });
           const feedbackData = await res.json();
@@ -128,9 +135,13 @@ function InterviewPage() {
 
       setFetchingHint(true);
       try {
-          const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/api/interview/hint`, {
+          const token = await getToken();
+          const res = await fetch(`${GlobalApi.API_BASE}/api/interview/hint`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+              },
               body: JSON.stringify({ resumeData, currentQuestion, currentAnswer })
           });
           const data = await res.json();

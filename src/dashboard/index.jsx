@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import AddResume from './components/AddResume'
-import { useUser } from '@clerk/clerk-react'
+import { useUser, useAuth } from '@clerk/clerk-react'
 import GlobalApi from "~/service/GlobalApi.js";
 import ResumeCardItem from './components/ResumeCardItem';
 
 function Dashboard() {
   const {user} = useUser();
+  const { getToken } = useAuth();
 
   const [resumeList, setResumeList] = useState([]);
 
@@ -16,7 +17,8 @@ function Dashboard() {
 /**used to get user Resume List */
   const GetResumeList = async () => {
     try {
-      const data = await GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress);
+      const token = await getToken();
+      const data = await GlobalApi.GetUserResumes(user?.primaryEmailAddress?.emailAddress, token);
       setResumeList(data);
     } catch (error) {
       console.error("Error fetching resumes:", error);

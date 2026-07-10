@@ -9,10 +9,13 @@ export const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:80
 /**
  * Create a new resume.
  */
-const CreateNewResume = async (data) => {
+const CreateNewResume = async (data, token) => {
   const res = await fetch(`${API_BASE}/api/resumes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -25,9 +28,10 @@ const CreateNewResume = async (data) => {
 /**
  * Get all resumes for a user by email.
  */
-const GetUserResumes = async (userEmail) => {
+const GetUserResumes = async (userEmail, token) => {
   const res = await fetch(
-    `${API_BASE}/api/resumes?userEmail=${encodeURIComponent(userEmail)}`
+    `${API_BASE}/api/resumes?userEmail=${encodeURIComponent(userEmail)}`,
+    { headers: { "Authorization": `Bearer ${token}` } }
   );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -39,10 +43,13 @@ const GetUserResumes = async (userEmail) => {
 /**
  * Update a resume by its UUID.
  */
-const UpdateResumeDetail = async (id, updates) => {
+const UpdateResumeDetail = async (id, updates, token) => {
   const res = await fetch(`${API_BASE}/api/resumes/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify({ updates }),
   });
   if (!res.ok) {
@@ -55,8 +62,10 @@ const UpdateResumeDetail = async (id, updates) => {
 /**
  * Get a single resume by its UUID.
  */
-const GetResumeById = async (id) => {
-  const res = await fetch(`${API_BASE}/api/resumes/${id}`);
+const GetResumeById = async (id, token) => {
+  const res = await fetch(`${API_BASE}/api/resumes/${id}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Failed to fetch resume");
@@ -67,9 +76,10 @@ const GetResumeById = async (id) => {
 /**
  * Delete a resume by its UUID.
  */
-const DeleteResumeById = async (id) => {
+const DeleteResumeById = async (id, token) => {
   const res = await fetch(`${API_BASE}/api/resumes/${id}`, {
     method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` }
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

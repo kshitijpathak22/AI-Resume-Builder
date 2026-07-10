@@ -22,12 +22,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import GlobalApi from '~/service/GlobalApi'
 import { toast, Toaster } from 'sonner'
+import { useAuth } from '@clerk/clerk-react'
 
 function ResumeCardItem({resume,refreshData}) {
 
   const navigation=useNavigate();
   const [openAlert,setOpenAlert]=useState(false);
   const [loading,setLoading]=useState(false);
+  const { getToken } = useAuth();
   // const onMenuClick=(url)=>{
   //   navigation(url)
   // }
@@ -36,7 +38,8 @@ function ResumeCardItem({resume,refreshData}) {
   const onDelete = async () => {
     setLoading(true);
     try {
-      await GlobalApi.DeleteResumeById(resume.id);
+      const token = await getToken();
+      await GlobalApi.DeleteResumeById(resume.id, token);
       toast('Resume Deleted!');
       refreshData();
       setOpenAlert(false);
