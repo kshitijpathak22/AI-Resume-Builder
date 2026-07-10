@@ -1,12 +1,12 @@
 import React, { useContext, useState } from 'react'
 import { ResumeInfoContext } from '@/context/ResumeInfoContext';
 import { Button } from '@/components/ui/button';
-import { Save, LoaderCircle } from 'lucide-react';
+import { Save, Loader2 } from 'lucide-react';
 import GlobalApi from '~/service/GlobalApi';
 import { toast } from 'sonner';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { Editor, EditorProvider, Toolbar, BtnBold, BtnItalic, BtnUnderline, BtnStrikeThrough, Separator, BtnNumberedList, BtnBulletList, BtnLink, BtnStyles } from 'react-simple-wysiwyg';
+import DefaultEditor from 'react-simple-wysiwyg';
 import ThemeColor from './ThemeColor';
 import TailorJDModal from './TailorJDModal';
 import { Home, Eye } from 'lucide-react';
@@ -43,7 +43,7 @@ function FreeformEditor() {
                 </div>
                 <div className='flex gap-2'>
                     <Button onClick={onSave} disabled={loading} size="sm">
-                        {loading ? <LoaderCircle className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save</>}
+                        {loading ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save</>}
                     </Button>
                     <Button 
                         onClick={() => navigation('/my-resume/'+resumeId+"/view")}
@@ -55,26 +55,11 @@ function FreeformEditor() {
             </div>
             
             <div className="bg-card p-4 rounded-lg border shadow-sm">
-                <EditorProvider>
-                    <Editor 
-                        value={resumeInfo?.content || ''} 
-                        onChange={(e) => setResumeInfo({...resumeInfo, content: e.target.value})}
-                        containerProps={{ style: { height: '600px', overflowY: 'auto' } }}
-                    >
-                        <Toolbar>
-                            <BtnBold />
-                            <BtnItalic />
-                            <BtnUnderline />
-                            <BtnStrikeThrough />
-                            <Separator />
-                            <BtnNumberedList />
-                            <BtnBulletList />
-                            <Separator />
-                            <BtnLink />
-                            <BtnStyles />
-                        </Toolbar>
-                    </Editor>
-                </EditorProvider>
+                <DefaultEditor 
+                    value={resumeInfo?.content || ''} 
+                    onChange={(e) => setResumeInfo({...resumeInfo, content: e.target.value})}
+                    containerProps={{ style: { height: '600px', overflowY: 'auto' } }}
+                />
             </div>
         </div>
     )
