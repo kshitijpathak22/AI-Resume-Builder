@@ -4,9 +4,8 @@ import { ResumeInfoContext } from '@/context/ResumeInfoContext';
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom';
 import GlobalApi from '~/service/GlobalApi';
-import { RWebShare } from 'react-web-share'
-import ResumePreview from '@/dashboard/resume/components/ResumePreview';
-import FreeformPreview from '@/dashboard/resume/components/FreeformPreview';
+import ResumePreview from '../../../dashboard/resume/components/ResumePreview';
+import FreeformPreview from '../../../dashboard/resume/components/FreeformPreview';
 
 function ViewResume() {
 
@@ -51,15 +50,10 @@ function ViewResume() {
                   <Button variant="secondary" className="border border-primary/20 hover:border-primary/50 shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(14,165,233,0.2)]">Practice Interview</Button>
                 </Link>
 
-                <RWebShare
-        data={{
-          text: "Hello Everyone, This is my resume please open url to see it",
-          url: window.location.origin+"/my-resume/"+resumeId+"/view",
-          title: resumeInfo?.firstName+" "+resumeInfo?.lastName+" resume",
-        }}
-        onClick={() => console.log("shared successfully!")}
-      > <Button>Share</Button>
-      </RWebShare>
+                <Button onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin+"/my-resume/"+resumeId+"/view");
+                  alert("Link copied to clipboard!");
+                }}>Share</Button>
             </div>
         </div>
             
