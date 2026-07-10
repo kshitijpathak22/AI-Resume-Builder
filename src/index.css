@@ -121,49 +121,104 @@
       @apply bg-background text-foreground;
       background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
       background-size: 28px 28px;
-      background-attachment: fixed;
     }
     .dark body {
       background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
-      background-attachment: fixed;
+    }
+
+    /* Liquid glass ambient light — soft color orbs the glass refracts */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      will-change: transform;
+      background:
+        radial-gradient(circle 600px at 12% -8%, rgba(91, 63, 217, 0.16), transparent 60%),
+        radial-gradient(circle 500px at 92% 18%, rgba(22, 166, 248, 0.12), transparent 60%),
+        radial-gradient(circle 700px at 50% 115%, rgba(91, 63, 217, 0.10), transparent 60%);
+    }
+    .dark body::before {
+      background:
+        radial-gradient(circle 600px at 12% -8%, rgba(91, 63, 217, 0.22), transparent 60%),
+        radial-gradient(circle 500px at 92% 18%, rgba(22, 166, 248, 0.14), transparent 60%),
+        radial-gradient(circle 700px at 50% 115%, rgba(120, 63, 217, 0.12), transparent 60%);
     }
   }
 
   @layer components {
-    /* Brain.fm inspired glass panels */
+    /* ─── Liquid Glass panels ───
+       Blur + saturation for the refraction feel, a specular top edge
+       (inset highlight) and a soft drop shadow for depth. */
     .glass-light {
-      background-color: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.35));
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 8px 32px rgba(31, 22, 70, 0.08);
     }
     .dark .glass-light {
-      background-color: rgba(13, 12, 17, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(13, 12, 17, 0.45));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 8px 32px rgba(0, 0, 0, 0.35);
     }
 
     .glass-medium {
-      background-color: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.2));
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.15),
+        0 12px 40px rgba(31, 22, 70, 0.1);
     }
     .dark .glass-medium {
-      background-color: rgba(13, 12, 17, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(13, 12, 17, 0.4));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
     .glass-heavy {
-      background-color: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(28px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.55));
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 16px 48px rgba(31, 22, 70, 0.14);
     }
     .dark .glass-heavy {
-      background-color: rgba(13, 12, 17, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(13, 12, 17, 0.75));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 16px 48px rgba(0, 0, 0, 0.5);
     }
 
     /* Global application of glass medium to cards and dialogs */
     .card-glass, .bg-card, [role="dialog"], [data-radix-popper-content-wrapper] > div {
-      @apply glass-medium shadow-lg !important;
+      @apply glass-medium shadow-lg rounded-2xl !important;
+    }
+
+    /* Frosted glass inputs */
+    .glass-input, input.glass, textarea.glass {
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .dark .glass-input, .dark input.glass, .dark textarea.glass {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* Brain.fm inspired noise-panel glow card */
@@ -177,10 +232,7 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 100%);
-      opacity: 0.4;
-      mix-blend-mode: screen;
-      mask-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.1) 100%);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 45%, transparent 100%);
       pointer-events: none;
     }
 

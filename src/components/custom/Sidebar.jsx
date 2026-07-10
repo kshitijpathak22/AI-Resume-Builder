@@ -28,12 +28,12 @@ function Sidebar() {
     ];
 
     const SidebarContent = () => (
-        <div className={`flex flex-col h-full bg-background border-r border-border/40 backdrop-blur-md transition-all duration-300 shadow-xl relative ${isCollapsed ? 'w-20 p-2' : 'w-64 p-4'}`}>
+        <div className={`flex flex-col h-full glass-medium !rounded-none md:!rounded-r-3xl border-r border-white/10 transition-all duration-300 relative ${isCollapsed ? 'w-20 p-2' : 'w-64 p-4'}`}>
             
             {/* Desktop Collapse Toggle */}
             <button 
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="hidden md:flex absolute -right-3 top-8 bg-background border border-border/40 rounded-full p-1 z-50 text-muted-foreground hover:text-foreground shadow-sm hover:scale-110 transition-transform"
+                className="hidden md:flex absolute -right-3 top-8 glass-heavy rounded-full p-1 z-50 text-muted-foreground hover:text-foreground hover:scale-110 transition-transform"
             >
                 {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
@@ -68,7 +68,7 @@ function Sidebar() {
                             to={link.path}
                             onClick={() => setIsOpen(false)}
                             title={isCollapsed ? link.name : ''}
-                            className={`flex items-center rounded-lg transition-colors font-medium text-sm ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'} ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'}`}
+                            className={`flex items-center rounded-full transition-all font-medium text-sm ${isActive ? 'bg-primary/15 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-md' : 'text-muted-foreground hover:bg-white/10 hover:text-foreground'} ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'}`}
                         >
                             {link.icon}
                             {!isCollapsed && <span>{link.name}</span>}
@@ -78,7 +78,7 @@ function Sidebar() {
                 <button 
                     onClick={handleSettingsClick}
                     title={isCollapsed ? "Settings" : ""}
-                    className={`flex items-center rounded-lg transition-colors font-medium text-sm text-muted-foreground hover:bg-white/5 hover:text-foreground ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'}`}
+                    className={`flex items-center rounded-full transition-all font-medium text-sm text-muted-foreground hover:bg-white/10 hover:text-foreground ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3 text-left'}`}
                 >
                     <Settings className="w-5 h-5 flex-shrink-0" />
                     {!isCollapsed && <span>Settings</span>}
@@ -112,7 +112,7 @@ function Sidebar() {
     return (
         <>
             {/* Mobile Header (Hamburger) */}
-            <div className="md:hidden fixed top-0 left-0 w-full h-16 bg-background/80 backdrop-blur-md border-b border-border/40 z-40 flex items-center px-4">
+            <div className="md:hidden fixed top-0 left-0 w-full h-16 glass-heavy !rounded-none border-b border-white/10 z-40 flex items-center px-4">
                 <button onClick={() => setIsOpen(true)} className="p-2 text-foreground">
                     <Menu className="w-6 h-6" />
                 </button>

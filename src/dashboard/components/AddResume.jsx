@@ -40,6 +40,7 @@ function AddResume() {
             navigation('/dashboard/resume/' + result.id + "/edit");
         } catch (error) {
             console.error("Create error:", error);
+            toast.error(error.message || "Failed to create resume");
             setLoading(false);
         }
     }
@@ -104,7 +105,7 @@ function AddResume() {
             <div className='p-14 py-24 border 
                 items-center flex flex-col gap-4
                 justify-center card-glass
-                rounded-xl h-[280px]
+                rounded-3xl h-[280px]
                 hover:scale-105 active:scale-[0.97] transition-all hover:shadow-2xl
                 cursor-pointer border-dashed border-white/50 dark:border-white/20 group'
                 onClick={() => setOpenDialog(true)}
@@ -119,7 +120,7 @@ function AddResume() {
             <div className='p-14 py-24 border 
                 items-center flex flex-col gap-4
                 justify-center card-glass
-                rounded-xl h-[280px]
+                rounded-3xl h-[280px]
                 hover:scale-105 active:scale-[0.97] transition-all hover:shadow-2xl
                 cursor-pointer border-dashed border-[#16A6F8]/50 dark:border-[#16A6F8]/20 group relative overflow-hidden'
                 onClick={() => !uploadLoading && fileInputRef.current?.click()}
@@ -147,7 +148,7 @@ function AddResume() {
                 />
             </div>
 
-            <Dialog open={openDialog}>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Create New Resume</DialogTitle>

@@ -31,9 +31,8 @@ function Home() {
 
             <h1 className="text-5xl font-extrabold tracking-tight leading-[1.1] text-foreground md:text-6xl lg:text-7xl">
               Build Your Resume <br/>
-              <span className="relative inline-block">
-                <span className="text-white relative z-10">With AI</span>
-                <span className="absolute left-[-2%] top-[50%] w-[104%] h-[55%] bg-gradient-to-r from-[#2837D2] to-[#16A6F8] -z-0 rounded-sm"></span>
+              <span className="relative inline-block px-4 pb-1 -mx-1 rounded-2xl bg-gradient-to-r from-[#2837D2] to-[#16A6F8] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_8px_32px_rgba(40,55,210,0.35)]">
+                With AI
               </span>
             </h1>
 
@@ -59,7 +58,7 @@ function Home() {
           {/* Floating Resume Graphic */}
           <div className="lg:w-1/2 relative flex justify-center perspective-[2000px]">
             <div className="relative animate-float w-full max-w-[380px]">
-              <div className="absolute inset-0 bg-[#5B3FD9]/25 blur-[100px] rounded-full"></div>
+              <div className="absolute inset-[-15%] rounded-full" style={{ background: 'radial-gradient(circle, rgba(91,63,217,0.25) 0%, transparent 70%)' }}></div>
               
               <div className="noise-panel !overflow-visible p-6 shadow-2xl relative z-10 glow-purple transform rotate-y-[-10deg] rotate-x-[10deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out cursor-pointer bg-[#0D0C11]/80">
                 <div className="flex items-center gap-4 mb-6 border-b border-white/10 pb-4">
@@ -113,7 +112,7 @@ function Home() {
                 </div>
               ), title: 'AI Mock Interview', desc: 'Practice your interviewing skills with our AI, using your resume as conversational context.' }
           ].map((step, i) => (
-            <div key={i} className="noise-panel bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50 p-8 group transition-all duration-300 hover:-translate-y-2 hover:glow-purple">
+            <div key={i} className="noise-panel bg-white/40 dark:bg-[#0D0C11]/50 p-8 group transition-all duration-300 hover:-translate-y-2 hover:glow-purple">
               <div className="icon-glass inline-flex mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 {step.icon}
               </div>
@@ -145,7 +144,7 @@ function Home() {
                   Our templates are engineered to pass through Applicant Tracking Systems. No more guessing if your resume will be read by human eyes.
                 </p>
               </div>
-              <div className="lg:w-1/2 noise-panel p-8 relative overflow-hidden group bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50">
+              <div className="lg:w-1/2 noise-panel p-8 relative overflow-hidden group bg-white/40 dark:bg-[#0D0C11]/50">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="space-y-5 relative z-10">
                   <div className="flex items-center gap-3"><CheckCircle2 className="text-emerald-400 flex-shrink-0" /><span className="text-foreground font-medium">Standardized Headings</span></div>
@@ -166,7 +165,7 @@ function Home() {
                   Stuck staring at a blank page? Give our AI your job title, and it will instantly generate powerful, action-oriented bullet points.
                 </p>
               </div>
-              <div className="lg:w-1/2 noise-panel p-8 relative overflow-hidden bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50">
+              <div className="lg:w-1/2 noise-panel p-8 relative overflow-hidden bg-white/40 dark:bg-[#0D0C11]/50">
                 <div className="p-5 bg-black/30 rounded-xl border border-white/10 font-mono text-sm leading-relaxed">
                   <span className="text-muted-foreground">Prompt:</span> <span className="text-[#16A6F8]">"Software Engineer at Google"</span><br/><br/>
                   <span className="text-emerald-400">Result:</span><br/>
@@ -190,7 +189,7 @@ function Home() {
         <div className="relative w-full flex overflow-x-hidden">
           <div className="animate-marquee whitespace-nowrap flex gap-6 px-4">
             {[1, 2, 3, 4, 5, 1, 2, 3, 4, 5].map((item, idx) => (
-              <div key={idx} className="noise-panel bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50 p-6 w-80 flex-shrink-0 whitespace-normal hover:scale-105 transition-transform cursor-pointer hover:glow-purple">
+              <div key={idx} className="noise-panel bg-white/40 dark:bg-[#0D0C11]/50 p-6 w-80 flex-shrink-0 whitespace-normal hover:scale-105 transition-transform cursor-pointer hover:glow-purple">
                 <div className="flex text-amber-400 mb-3">
                   <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
                 </div>
@@ -226,7 +225,7 @@ function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Free */}
-          <div className="noise-panel bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50 p-10 flex flex-col items-center hover:-translate-y-2 transition-transform duration-300">
+          <div className="noise-panel bg-white/40 dark:bg-[#0D0C11]/50 p-10 flex flex-col items-center hover:-translate-y-2 transition-transform duration-300">
             <h3 className="text-2xl font-bold text-foreground mb-2">Basic</h3>
             <div className="text-4xl font-extrabold text-foreground mb-8">$0<span className="text-lg font-normal text-muted-foreground">/forever</span></div>
             <ul className="space-y-4 mb-10 text-left w-full text-muted-foreground">
@@ -238,7 +237,7 @@ function Home() {
           </div>
 
           {/* Pro */}
-          <div className="noise-panel bg-[#0D0C11]/30 dark:bg-[#0D0C11]/50 p-10 flex flex-col items-center relative scale-105 glow-purple hover:-translate-y-2 transition-transform duration-300">
+          <div className="noise-panel bg-white/40 dark:bg-[#0D0C11]/50 p-10 flex flex-col items-center relative scale-105 glow-purple hover:-translate-y-2 transition-transform duration-300">
             <div className="absolute top-0 transform -translate-y-1/2 bg-gradient-to-r from-[#2837D2] to-[#16A6F8] text-white px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase">
               Most Popular
             </div>

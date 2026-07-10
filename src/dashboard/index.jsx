@@ -27,9 +27,9 @@ function Dashboard() {
 
   return (
     <div className='p-10 md:px-20 lg:px-32'>
-      <h2 className='font-bold text-3xl text-foreground'>My Resume</h2>
-      <p className='text-muted-foreground'>Start creating AI resume to your next job role</p>
-      <div className='grid grid-cols-2 md:grid-cold-3 lg:grid-cols-5 mt-1 gap-5'>
+      <h2 className='font-bold text-3xl tracking-tight text-foreground'>My Resumes</h2>
+      <p className='text-muted-foreground mt-1'>Start creating an AI resume for your next job role</p>
+      <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mt-8 gap-5'>
         <AddResume/>
         {resumeList.length>0&&resumeList.map((resume,index)=>(
           <ResumeCardItem resume={resume} key={index} refreshData={GetResumeList} />

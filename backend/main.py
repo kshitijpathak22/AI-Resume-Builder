@@ -287,7 +287,11 @@ async def create_resume(req: CreateResumeRequest, payload: dict = Depends(verify
             "user_email": req.userEmail,
             "user_name": req.userName,
         }).execute()
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Insert succeeded but no row was returned (check Supabase RLS policies).")
         return to_camel(result.data[0])
+    except HTTPException:
+        raise
     except Exception as e:
         print("Create resume error:", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -490,9 +494,12 @@ async def get_hint(req: HintRequest, payload: dict = Depends(verify_token)):
 @app.post("/api/resume/parse")
 async def parse_resume(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
     text = ""
+    filename = (file.filename or "").lower()
+    if not (filename.endswith('.pdf') or filename.endswith('.docx')):
+        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
     try:
         content = await file.read()
-        if file.filename.lower().endswith('.pdf'):
+        if filename.endswith('.pdf'):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(content)
                 tmp_path = tmp.name
@@ -502,12 +509,10 @@ async def parse_resume(file: UploadFile = File(...), payload: dict = Depends(ver
                 text = pymupdf4llm.to_markdown(tmp_path)
             finally:
                 os.remove(tmp_path)
-        elif file.filename.lower().endswith('.docx'):
+        else:
             doc = docx.Document(io.BytesIO(content))
             for para in doc.paragraphs:
                 text += para.text + "\n\n"
-        else:
-            raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
     except HTTPException:
         raise
     except Exception as e:

@@ -45,6 +45,7 @@ function ResumeCardItem({resume,refreshData}) {
       setOpenAlert(false);
     } catch (error) {
       console.error('Delete error:', error);
+      toast.error(error.message || 'Failed to delete resume');
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ function ResumeCardItem({resume,refreshData}) {
     
        <div className='group active:scale-[0.97] transition-transform duration-200 cursor-pointer'>
           <Link to={'/dashboard/resume/'+resume.id+"/edit"}>
-        <div className='p-14 card-glass h-[280px] rounded-t-xl border-t-4 transition-all hover:border-primary hover:shadow-[0_0_2rem_-0.5rem_rgba(91,63,217,0.5)] relative flex flex-col items-center justify-center'
+        <div className='p-14 card-glass h-[280px] !rounded-t-3xl !rounded-b-none border-t-4 transition-all hover:border-primary hover:shadow-[0_0_2rem_-0.5rem_rgba(91,63,217,0.5)] relative flex flex-col items-center justify-center'
         style={{
           borderColor:resume?.themeColor || 'var(--primary)'
         }}
@@ -82,7 +83,7 @@ function ResumeCardItem({resume,refreshData}) {
               </div>
         </div>
         </Link>
-        <div className='border border-t-0 p-3 flex justify-between text-white rounded-b-xl shadow-lg backdrop-blur-xl'
+        <div className='border border-t-0 border-white/20 p-3 flex justify-between text-white rounded-b-3xl shadow-lg backdrop-blur-xl'
          style={{
           background:resume?.themeColor ? `${resume.themeColor}dd` : 'rgba(91, 63, 217, 0.8)'
         }}>
@@ -102,14 +103,14 @@ function ResumeCardItem({resume,refreshData}) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <AlertDialog open={openAlert}>
+        <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
         
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account
-              and remove your data from our servers.
+              This action cannot be undone. This will permanently delete this resume
+              and remove its data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
