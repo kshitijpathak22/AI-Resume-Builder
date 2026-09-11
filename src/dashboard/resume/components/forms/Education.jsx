@@ -5,6 +5,7 @@ import { ResumeInfoContext } from '@/context/ResumeInfoContext';
 import { LoaderCircle } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import GlobalApi from '~/service/GlobalApi';
 
@@ -15,6 +16,7 @@ function Education() {
   const [loading,setLoading]=useState(false);
   const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
   const params=useParams();
+  const { getToken } = useAuth();
   const [educationalList,setEducationalList]=useState([
     {
       universityName:'',
@@ -57,7 +59,7 @@ function Education() {
     try {
       await GlobalApi.UpdateResumeDetail(params.resumeId, {
         education: educationalList.map(({ id, ...rest }) => rest)
-      });
+      }, await getToken());
       toast('Details updated !')
     } catch (error) {
       console.error("Save error:", error);

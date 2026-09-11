@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ResumeInfoContext } from '@/context/ResumeInfoContext'
-import { data } from 'browserslist';
-import { LoaderCircle, LoaderIcon } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import GlobalApi from "~/service/GlobalApi.js";
 
@@ -12,6 +12,7 @@ import GlobalApi from "~/service/GlobalApi.js";
 function PersonalDetail({enabledNext}) {
 
   const params=useParams();
+  const { getToken } = useAuth();
   const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext)
 
   const [formData,setFormData]=useState();
@@ -38,11 +39,12 @@ function PersonalDetail({enabledNext}) {
       e.preventDefault();
       setLoading(true)
       try {
-          await GlobalApi.UpdateResumeDetail(params?.resumeId, formData);
+          await GlobalApi.UpdateResumeDetail(params?.resumeId, formData, await getToken());
           enabledNext(true);
           toast("Details updated")
       } catch (error) {
           console.error("Save error:", error);
+          toast.error(error.message || "Failed to save details");
       } finally {
           setLoading(false);
       }

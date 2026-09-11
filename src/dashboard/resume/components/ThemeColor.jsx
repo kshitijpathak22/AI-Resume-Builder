@@ -9,6 +9,7 @@ import { LayoutGrid } from 'lucide-react'
 import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import GlobalApi from '~/service/GlobalApi'
 import { useParams } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import { toast } from 'sonner'
 
 function ThemeColor() {
@@ -22,6 +23,7 @@ function ThemeColor() {
     const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
     const [selectedColor,setSelectedColor]=useState();
     const {resumeId}=useParams();
+    const { getToken } = useAuth();
     const onColorSelect = async (color) => {
         setSelectedColor(color)
         setResumeInfo({
@@ -29,10 +31,11 @@ function ThemeColor() {
             themeColor:color
         });
         try {
-            await GlobalApi.UpdateResumeDetail(resumeId, { themeColor: color });
+            await GlobalApi.UpdateResumeDetail(resumeId, { themeColor: color }, await getToken());
             toast('Theme Color Updated')
         } catch (error) {
             console.error("Theme update error:", error);
+            toast.error(error.message || 'Failed to update theme color');
         }
     }
 

@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import RichTextEditor from '@/dashboard/resume/components/RichTextEditor';
 import { ResumeInfoContext } from '@/context/ResumeInfoContext';
 import { useParams } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import GlobalApi from '~/service/GlobalApi';
 import { toast } from 'sonner';
 import { LoaderCircle } from 'lucide-react';
@@ -21,6 +22,7 @@ function Experience() {
     const [experinceList,setExperinceList]=useState([]);
     const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
     const params=useParams();
+    const { getToken } = useAuth();
     const [loading,setLoading]=useState(false);
 
     useEffect(()=>{
@@ -74,10 +76,11 @@ function Experience() {
         try {
             await GlobalApi.UpdateResumeDetail(params?.resumeId, {
                 Experience: experinceList.map(({ id, ...rest }) => rest)
-            });
+            }, await getToken());
             toast('Details updated !')
         } catch (error) {
             console.error("Save error:", error);
+            toast.error(error.message || 'Server Error, Try again!')
         } finally {
             setLoading(false);
         }

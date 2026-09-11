@@ -8,6 +8,7 @@ import { LoaderCircle } from 'lucide-react'
 import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import GlobalApi from '~/service/GlobalApi'
 import { useParams } from 'react-router-dom'
+import { useAuth } from '@clerk/clerk-react'
 import { toast } from 'sonner'
 function Skills() {
 
@@ -16,6 +17,7 @@ function Skills() {
         rating:0
     }])
     const {resumeId}=useParams();
+    const { getToken } = useAuth();
 
     const [loading,setLoading]=useState(false);
     const {resumeInfo,setResumeInfo}=useContext(ResumeInfoContext);
@@ -46,11 +48,11 @@ function Skills() {
         try {
             await GlobalApi.UpdateResumeDetail(resumeId, {
                 skills: skillsList.map(({ id, ...rest }) => rest)
-            });
+            }, await getToken());
             toast('Details updated !')
         } catch (error) {
             console.error("Save error:", error);
-            toast('Server Error, Try again!')
+            toast.error(error.message || 'Server Error, Try again!')
         } finally {
             setLoading(false);
         }

@@ -3,7 +3,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ResumeInfoContext } from '@/context/ResumeInfoContext'
 import { Brain, LoaderCircle } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react'
-import { Form, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { sendMessageWithExamples } from "~/service/AIModal.js";
 import GlobalApi from "~/service/GlobalApi.js";
@@ -15,6 +16,7 @@ function Summery({ enabledNext }) {
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const params = useParams();
+  const { getToken } = useAuth();
   const [aiGeneratedSummaryList, setAiGeneratedSummaryList] = useState([]);
 
   
@@ -104,7 +106,7 @@ function Summery({ enabledNext }) {
     try {
       await GlobalApi.UpdateResumeDetail(params.resumeId, {
         summary: summary || ''
-      });
+      }, await getToken());
       enabledNext(true);
       toast.success('Details updated successfully');
     } catch (error) {
