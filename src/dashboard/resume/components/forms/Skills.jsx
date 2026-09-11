@@ -71,20 +71,15 @@ function Skills() {
 
     <div>
         {skillsList.map((item,index)=>(
-            <div key={index} className='flex justify-between items-end mb-2 border rounded-lg p-3 '>
+            <div key={index} className='flex justify-between mb-2 border rounded-lg p-3 '>
                 <div>
                     <label className='text-xs'>Name</label>
                     <Input className="w-full"
                     defaultValue={item.name}
                     onChange={(e)=>handleChange(index,'name',e.target.value)} />
                 </div>
-                <div className='flex items-center gap-3'>
-                    <Rating style={{ maxWidth: 120 }} value={item.rating}
-                    onChange={(v)=>handleChange(index,'rating',v)}/>
-                    <span className='text-sm font-medium text-muted-foreground tabular-nums whitespace-nowrap'>
-                        {item.rating || 0}/5
-                    </span>
-                </div>
+                <Rating style={{ maxWidth: 120 }} value={item.rating}
+                onChange={(v)=>handleChange(index,'rating',v)}/>
 
             </div>
         ))}

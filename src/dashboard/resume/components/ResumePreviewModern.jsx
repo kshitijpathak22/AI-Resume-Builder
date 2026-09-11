@@ -49,11 +49,14 @@ function ResumePreviewModern({ resumeInfo }) {
             <div className='space-y-2'>
               {resumeInfo.skills.map((skill, index) => (
                 <div key={index}>
-                  <p className='text-xs mb-1'>{skill.name}</p>
+                  <div className='flex items-baseline justify-between mb-1'>
+                    <p className='text-xs'>{skill.name}</p>
+                    <span className='text-[10px] tabular-nums opacity-80'>{skill?.rating || 0}/5</span>
+                  </div>
                   <div className='h-1.5 bg-white/20 rounded-full'>
                     <div
                       className='h-1.5 bg-white rounded-full'
-                      style={{ width: `${skill?.rating * 20}%` }}
+                      style={{ width: `${(skill?.rating || 0) * 20}%` }}
                     ></div>
                   </div>
                 </div>
